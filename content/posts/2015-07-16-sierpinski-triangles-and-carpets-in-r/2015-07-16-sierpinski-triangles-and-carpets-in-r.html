@@ -1,0 +1,53 @@
+---
+title: Sierpinski Triangles (and Carpets) in R
+author: Jacob Rozran
+date: '2015-10-05'
+slug: sierpinski-triangles-and-carpets-in-r
+categories:
+  - Sierpinski Triangles
+tags:
+  - learning
+  - sierpinski triangles
+  - stat theory
+  - R
+  - RStudio
+---
+
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
+
+
+<p>Recently in class, I was asked the following question:</p>
+<blockquote>
+<p>Start with an equilateral triangle and a point chosen at random from the interior of that triangle. Label one vertex 1, 2, a second vertex 3, 4, and the last vertex 5, 6. Roll a die to pick a vertex. Place a dot at the point halfway between the roll-selected vertex and the point you chose. Now consider this new dot as a starting point to do this experiment once again. Roll the die to pick a new vertex. Place a dot at the point halfway between the last point and the most recent roll-selected vertex. Continue this procedure. What does the shape of the collection of dots look like?</p>
+</blockquote>
+<p>I thought, well - it’s got to be something cool or else the professor wouldn’t ask, but I can’t imagine it will be more than a cloud of dots. Truth be told, I went to a conference for work the week of this assignment and never did it - but when I went to the next class, <strong>IT WAS SOMETHING COOL!</strong> It turns out that this creates a <a href="https://en.wikipedia.org/wiki/Sierpinski_triangle">Sierpinski Triangle</a> - a fractal of increasingly smaller triangles.</p>
+<p>I wanted to check this out for myself, so I built an R script that creates the
+triangle. I ran it a few times with differing amounts of points. Here is one
+with 50,000 points. Though this post is written in RStudio, I’ve hidden the code
+for readability. Actual code for this can be found
+<a href="https://github.com/jrozra200/pretty_triangles/blob/master/createTriangle.R">here</a>.</p>
+<p><img src="/post/Older Posts/2015-07-16-sierpinski-triangles-and-carpets-in-r_files/figure-html/sierpinski_triangle-1.png" width="100%" /></p>
+<p>I thought - if equilateral triangles create patterns this cool, a square must be
+amazing! Well… it is, however you can’t just run this logic - it will return a
+cloud of random dots…</p>
+<p>After talking with my professor, Dr. Levitan - it turns out you can get something
+equally awesome as the Sierpinski triangle with a square; you just need to make
+a few changes (say this with a voice of authority and calm knowingness):</p>
+<blockquote>
+<p>Instead of 3 points to move to, you need 8 points: the 4 corners of a specified square and the midpoints between each side. Also, instead of taking the midpoint of your move to the specified location, you need to take the tripoint (division by 3 instead of 2).</p>
+</blockquote>
+<p>This is called a <a href="https://en.wikipedia.org/wiki/Sierpinski_carpet">Sierpinski Carpet</a>
+- a fractal of squares (as opposed to a fractal of equilateral triangles in the
+graph above). You can see in both the triangle and square that the same pattern
+is repeated time and again in smaller and smaller increments.</p>
+<p>I updated my R script and voila - MORE BEAUTIFUL MATH!</p>
+<p><img src="/post/Older Posts/2015-07-16-sierpinski-triangles-and-carpets-in-r_files/figure-html/sierpinski_carpet-1.png" width="100%" /></p>
+<p>Check out the script and run the functions yourself! I only spent a little bit of time
+putting it together - I think it would be cool to add some other features,
+especially when it comes to the plotting of the points. Also - I’d like to run
+it for a million or more points… I just lacked the patience to wait out the
+script to run for that long (50,000 points took about 30 minutes to run - my
+script is probably not the most efficient).</p>
+<p>Anyways - really cool to see what happens in math sometimes - its hard to imagine
+at first that the triangle would look that way. Another reason math is cool!</p>

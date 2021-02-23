@@ -1,0 +1,325 @@
+---
+title: How to Build a Binary Classification Model
+author: Jacob Rozran
+date: '2017-02-07'
+output:
+  blogdown::html_page:
+    toc: true
+    toc_depth: 5
+    number_sections: False
+slug: how-to-build-a-binary-classification-model
+categories:
+  - Data Science
+  - Binary Classification Models
+tags:
+  - data science
+  - classification
+  - machine learning
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#what-is-binary-classification">What Is Binary Classification?</a></li>
+<li><a href="#algorithms-for-binary-classification">Algorithms for Binary Classification</a>
+<ul>
+<li><a href="#logistic-regression">Logistic Regression</a></li>
+<li><a href="#decision-treesrandom-forests">Decision Trees/Random Forests</a>
+<ul>
+<li><a href="#decision-trees">Decision Trees</a></li>
+<li><a href="#random-forests">Random Forests</a></li>
+</ul></li>
+<li><a href="#nearest-neighbor">Nearest Neighbor</a></li>
+<li><a href="#support-vector-machines-svm">Support Vector Machines (SVM)</a></li>
+<li><a href="#neural-networks">Neural Networks</a></li>
+</ul></li>
+<li><a href="#great.-now-what">Great. Now what?</a>
+<ul>
+<li><a href="#determining-what-the-problem-is">Determining What the Problem is</a></li>
+<li><a href="#locate-and-obtain-data">Locate and Obtain Data</a></li>
+<li><a href="#data-mining-preparing-for-analysis">Data Mining &amp; Preparing for Analysis</a></li>
+<li><a href="#splitting-the-data">Splitting the Data</a></li>
+<li><a href="#building-the-models">Building the Models</a></li>
+<li><a href="#validating-the-models">Validating the Models</a></li>
+</ul></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+</div>
+
+<div id="what-is-binary-classification" class="section level3">
+<h3>What Is Binary Classification?</h3>
+<p>Binary classification is used to classify a given set into two categories.
+Usually, this answers a yes or no question:</p>
+<ul>
+<li>Did a particular passenger on the Titanic survive?</li>
+<li>Is a particular user account compromised?</li>
+<li><em>Is my product on the shelf in a certain pharmacy?</em></li>
+</ul>
+<p>This type of inference is frequently made using supervised machine learning
+techniques. Supervised machine learning means that you have historical, labeled
+data, from which your algorithm may learn.</p>
+</div>
+<div id="algorithms-for-binary-classification" class="section level3">
+<h3>Algorithms for Binary Classification</h3>
+<p>There are many methods for doing binary classification. To name a few:</p>
+<ul>
+<li>Logistic Regression</li>
+<li>Decision Trees/Random Forests</li>
+<li>Nearest Neighbor</li>
+<li>Support Vector Machines (SVM)</li>
+<li>Neural Networks</li>
+</ul>
+<div id="logistic-regression" class="section level4">
+<h4>Logistic Regression</h4>
+<p>Logistic regression is a parametric statistical model that predicts binary
+outcomes. Parametric means that this algorithm is based off of a distribution
+(in this case, the logistic distribution), and as such must follow a few
+assumptions:</p>
+<ul>
+<li>Obviously, the dependent variable must be binary</li>
+<li>Only meaningful independent variables are included in the model</li>
+<li>Error terms need to be independent and identically distributed</li>
+<li>Independent variables need to be independent from one another</li>
+<li>Large sample sizes are preferred</li>
+</ul>
+<p>Because of these assumptions, parametric tests tend to be more statistically
+powerful than nonparametric tests; in other words, they tend to better find a
+significant effect when it indeed exists.</p>
+<p>Logistic regression follows the equation:</p>
+<ul>
+<li>probability of the outcome being 1 given the independent variables
+<ul>
+<li>Dependent variable</li>
+<li>Limited to values between 0 and 1</li>
+</ul></li>
+<li>independent variables</li>
+<li>intercept and coefficients for the independent variables</li>
+</ul>
+<p>This equation is created based on a training set of data – or historical,
+labeled data – and then is used to predict the likelihoods of future, unlabeled
+data.</p>
+</div>
+<div id="decision-treesrandom-forests" class="section level4">
+<h4>Decision Trees/Random Forests</h4>
+<div id="decision-trees" class="section level5">
+<h5>Decision Trees</h5>
+<p>A decision tree is a nonparametric classifier. It effectively partitions the
+data, starting first by splitting on the independent variable that gives the
+most information gain, and then recursively repeating this process at subsequent
+levels.</p>
+<p>Information gain is a formula that determines how “important” an independent
+variable is in predicting the dependent variable. It takes into account how many
+distinct values there are (in terms of categorical variables) and the number and
+size of branches in the decision tree. The goal is to pick the most informative
+variable that is still general enough to prevent overfitting.</p>
+<p>The bottom of the decision tree, at the leaf nodes, are groupings of events
+within the set that all follow the rules set forth throughout the tree to get to
+the node. Future, unlabeled events, are then fed into the tree to see which
+group the belong – the average of the labeled (training) data for the leaf is
+then assigned as the predicted value for the unlabeled event.</p>
+<p>As with logistic regression, overfitting is a concern. If you allow a decision
+tree to continue to grow without bound, eventually you will have all identical
+events in each leaf; while this may look beneficial, it may be too specific to
+the training data and mislabel future events. “Pruning” occurs to prevent
+overfitting.</p>
+</div>
+<div id="random-forests" class="section level5">
+<h5>Random Forests</h5>
+<p>Random forests is an ensemble method build upon the decision trees. Random
+forests are a “forest” of decision trees – in other words, you use bootstrap
+sampling techniques to build many over-fit decision trees, then average out the
+results to determine a final model.</p>
+<p>A bootstrap sample is sampling with replacement – in every selection for the
+sample, each event has an equal chance of being chosen.</p>
+<p>To clarify – building a random forest model means taking many bootstrap samples
+and building an over-fit decision tree (meaning you continue to split the tree
+without bound until every leaf node has identical groups in them) on each. These
+results, taken together, correct for the biases and potential overfitting of an
+individual tree.</p>
+<p>The more trees in your random forest, the better – the trade-off being that more
+trees mean more computing. Random forests often take a long time to train.</p>
+</div>
+</div>
+<div id="nearest-neighbor" class="section level4">
+<h4>Nearest Neighbor</h4>
+<p>The k-nearest neighbor algorithm is a very simple algorithm. Using the training
+set as reference, the new, unlabeled data is predicted by taking the average of
+the k closest events. Being a lazy learner, where evaluation does not take place
+until you classify new events, it is quick to run.</p>
+<p>It can be difficult to determine what k should be. However, because it is easy
+computationally, you can run multiple iterations without much overhead.</p>
+</div>
+<div id="support-vector-machines-svm" class="section level4">
+<h4>Support Vector Machines (SVM)</h4>
+<p>SVM is also an ensemble machine learning method. SVM recursively attempts to
+“split” the two categories by maximizing the distance between a hyperplane (a
+plane in more than 2 dimensions; most applications of machine learning are in
+the higher dimensional space) and the closest points in each category.</p>
+<p>As you can see in the simple example below, the plane iteratively improves the
+split between the two groups.</p>
+<p>There are multiple kernels that can be used with SVM, depending on the shape of
+the data:</p>
+<ul>
+<li>Linear</li>
+<li>Polynomial</li>
+<li>Radial</li>
+<li>Sigmoid</li>
+</ul>
+<p>You may also choose to configure how big of steps can be taken by the plane in
+each iteration among other configurations.</p>
+</div>
+<div id="neural-networks" class="section level4">
+<h4>Neural Networks</h4>
+<p>Neural networks (there are several varieties) are built to mimic how a brain
+solves problems. This is done by creating multiple layers from a single input –
+most easily demonstrated with image recognition – where it is able to turn
+groups of pixels into another, single value, over and over again, to provide
+more information to train the model.</p>
+</div>
+</div>
+<div id="great.-now-what" class="section level3">
+<h3>Great. Now what?</h3>
+<p>Now that we know how we understand some of the tools in our arsenal, what are
+the steps to doing the analysis?</p>
+<ol style="list-style-type: decimal">
+<li>Determining what the problem is</li>
+<li>Locate and obtain data</li>
+<li>Data mining for understanding &amp; preparing for analysis</li>
+<li>Split data into training and testing sets</li>
+<li>Build model(s) on training data</li>
+<li>Test models on test data</li>
+<li>Validate and pick the best model</li>
+</ol>
+<div id="determining-what-the-problem-is" class="section level4">
+<h4>Determining What the Problem is</h4>
+<p>While it is easy to ask a question, it is difficult to understand all of the
+assumption being made by the question asker. For example, a simple question is
+asked:</p>
+<blockquote>
+<p>Will my product be on the shelf of this pharmacy next week?</p>
+</blockquote>
+<p>While that question may seem straightforward at first glance, what product are
+we talking about? What pharmacy are we talking about? What is the time frame
+which is being evaluated? Does it need to be in the pharmacy and available if
+you ask or does the customer need to be able to visually identify the product?
+Does it need to be available for the entire time period in question or did just
+have to be available at least part of the time period in question?</p>
+<p>Being as specific as possible is vital in order to deliver the correct answer.
+It is easy to misinterpret the assumptions of the question asker and then do a
+lot of work in to answer the wrong question. Specificity will help ensure time
+is not wasted and that question asker gets an answer that they were looking for.</p>
+<p>The final question may look more like:</p>
+<blockquote>
+<p>Will there be any Tylenol PM available over-the-counter at midnight, February 28, 2017 at Walgreens on the corner of 17th and John F. Kennedy Blvd in Philadelphia?</p>
+</blockquote>
+<p>Well – we don’t know. We can now use historical data to make our best guess.
+This question is specific enough to answer.</p>
+</div>
+<div id="locate-and-obtain-data" class="section level4">
+<h4>Locate and Obtain Data</h4>
+<p>Where is your data? Is it in a database? Some excel spreadsheet? Once you find
+it, how big is it? Can you download the data locally? Do you need to find a
+distributed database to handle it? If it is in a database, can you do some of the
+data mining (next step) before downloading the data?</p>
+<p>Be careful… “SELECT * FROM my_table;” can get scary, quick.</p>
+<p>This is also a good time to think about what tools and/or languages you want to
+use to mine and manipulate the data. Excel? SQL? R? Python? Some of the numerous
+other tools or languages out there that are good at a bunch of different things
+(Julia, Scala, Weka, Orange, etc.)?</p>
+<p>Get the data into one spot, preferably with some guidance on what and where it
+is in relation to what you need for your problem and open it up.</p>
+</div>
+<div id="data-mining-preparing-for-analysis" class="section level4">
+<h4>Data Mining &amp; Preparing for Analysis</h4>
+<p>The most time consuming step in any data science article you read will always be
+the data cleaning step. This document is no different – you will spend an
+inordinate amount of time getting to know the data, cleaning it, getting to know
+it better, and cleaning it again. You may then proceed to analysis, discover
+you’ve missed something, and come back to this step.</p>
+<p>There is a lot to consider in this step and each data analysis is different.</p>
+<p>Is your data complete? If you are missing values in your data, how will you deal
+with them? There is no overarching rule on this. If you are dealing with
+continuous data, perhaps you’ll fill missing data points with the average of
+similar data. Perhaps you can infer what it should be based on context. Perhaps
+it constitutes such a small portion of your data, the logical thing to do is to
+just drop the events all together.</p>
+<p>The dependent variable – how does it break down? We are dealing with binomial
+data here; is there way more zeros then ones? How will you deal with that if
+there is?</p>
+<p>Are you doing your analysis on a subset? If so, is your sample representative of
+the population? How can you be sure? This is where histograms are your friend.</p>
+<p>Do you need to create variables? Perhaps one independent variable you have is a
+date, which might be tough to use as an input to your model. Should you find out
+which day of the week each date was? Month? Year? Season? These are easier to
+add in as a model input in some cases.</p>
+<p>Do you need to standardize your data? Perhaps men are listed as “M,” “Male,”
+“m,” “male,” “dude,” and “unsure.” It would behoove you, in this example, to
+standardize this data to all take on the same value.</p>
+<p>In most algorithms, correlated input variables are bad. This is the time to plot
+all of the independent variables against each other to see if there is
+correlation. If there are correlated variables, it may be a tough choice to
+drop one (or all!).</p>
+<p>Speaking of independent variables, which are important to predict your dependent
+variable? You can use information gain packages (depending on the language/tool
+you are using to do your analysis), step-wise regression, or random forests to
+help understand the important variables.</p>
+<p>In many of these steps, there are no hard-and-fast rules on how to proceed.
+You’ll need to make a decision in the context of your problem. In many cases,
+you may be wrong and need to come back to the decision after trying things out.</p>
+</div>
+<div id="splitting-the-data" class="section level4">
+<h4>Splitting the Data</h4>
+<p>Now that you (think you) have a clean dataset, you’ll need to split it into
+training and testing datasets. You’ll want to have as much data as possible to
+train on, though still have enough data left over to test on. This is less and
+less of an issue in the age of big data. However, sometimes too much data and it
+will take too long for your algorithms to train. Again – this is another
+decision that will need to be made in the context of your problem.</p>
+<p>There are a few options for splitting your data. The most straightforward being
+take a portion of your overall dataset to train on (say 70%) and leave behind
+the rest to test on. This works well in most big data applications.</p>
+<p>If you do not have a lot of data (or if you do), consider cross-validation. This
+is an iterative approach where you train your algorithm recursively on the same
+data set, leaving some portion out each iteration to be used as the test set.
+The most popular versions of cross-validation are k-fold cross validation and
+leave-one-out cross validation. There is even nested cross-validation, which
+gets very Inception-like.</p>
+</div>
+<div id="building-the-models" class="section level4">
+<h4>Building the Models</h4>
+<p>Finally, you are ready to do what we came to do – build the models. We have our
+datasets cleaned, enriched, and split. Time to build our models. I say it plural
+because you’ll always want to evaluate which method and/or inputs works best.
+You’ll want to pick a few of the algorithms from above and build the model.</p>
+<p>While that is vague, depending on your language or tool of choice, there are
+multiple packages available to perform each analysis. It is generally only a
+line or two of code to train each model; once we have our models trained, it is
+time to validate.</p>
+</div>
+<div id="validating-the-models" class="section level4">
+<h4>Validating the Models</h4>
+<p>So – which model did best? How can you tell? We start by predicting results for
+our test set with each model and building a confusion matrix for each:</p>
+<p>With this, we can calculate the specificity, sensitivity, and accuracy for each
+model.</p>
+<p>For each value, higher is better. The best model is one that performs the best
+in each of these counts.</p>
+<p>In the real world, frequently one model will have better specificity, while
+another will have better sensitivity, and yet another will be the most accurate.
+Again, there is no hard and fast rule one which model to choose; it all depends
+on the context. Perhaps false positives are really bad in your context, then the
+specificity rate should be given more merit. It all depends.</p>
+<p>From here, you have some measures in order to pick a model and implement it.</p>
+</div>
+</div>
+<div id="conclusion" class="section level3">
+<h3>Conclusion</h3>
+<p>Much of model building, in general, is part computer science, part statistics,
+and part business understanding. Understanding which tools and languages are
+best to implement the best statistical modeling technique to solve a business
+problem can feel like more of a form of art than science at times.</p>
+<p>In this document, I’ve presented some algorithms and steps to do binary
+classification, which is just the tip of the iceberg. I am sure there are
+algorithms and steps missing – I hope that this helps in your understanding.</p>
+</div>

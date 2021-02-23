@@ -1,0 +1,312 @@
+---
+title: "Model Comparision - ROC Curves & AUC"
+author: Jacob Rozran
+date: '2020-01-27'
+slug: model-comparison--understanding-ROC-curves-and-AUC
+summaryImage: "roc_curve.jpg"
+categories:
+- Data Science
+- AI
+- Modeling
+tags:
+- data science
+- AI
+- model coparison
+- ROC curves
+- AUC
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level3">
+<h3>INTRODUCTION</h3>
+<p>Whether you are a data professional or in a job that requires data driven
+decisions, predictive analytics and related products (aka machine learning aka
+ML aka artificial intelligence aka AI) are here and understanding them is
+paramount. They are being used to drive industry. Because of this, understanding
+how to compare predictive models is very important.</p>
+<p>This post gets into a very popular method of decribing how well a model performs:
+the Area Under the Curve (AUC) metric.</p>
+<p>As the term implies, AUC is a measure of area under the <strong>curve</strong>. The curve
+referenced is the Reciever Operating Characteristic (ROC) curve. The ROC curve
+is a way to visually represent how the <strong>True Positive Rate (TPR)</strong> increases as
+the <strong>False Positive Rate (FPR)</strong> increases.</p>
+<p>In plain english, the ROC curve is a visualization of how well a predictive
+model is ordering the outcome - can it separate the two classes (TRUE/FALSE)?
+If not (most of the time it is not perfect), how close does it get? This last
+question can be answered with the AUC metric.</p>
+</div>
+<div id="the-background" class="section level3">
+<h3>THE BACKGROUND</h3>
+<p>Before I explain, let’s take a step back and understand the foundations of
+<strong>TPR</strong> and <strong>FPR</strong>.</p>
+<p>For this post we are talking about a binary prediction (TRUE/FALSE). This could
+be answering a question like: Is this fraud? (TRUE/FALSE).</p>
+<p>In a predictive model, you get some right and some wrong for both the TRUE and
+FALSE. Thus, you have four categories of outcomes:</p>
+<ul>
+<li><strong>True positive (TP)</strong>: I predicted TRUE and it was actually TRUE</li>
+<li><strong>False positive (FP)</strong>: I predicted TRUE and it was actually FALSE</li>
+<li><strong>True negative (TN)</strong>: I predicted FALSE and it was actually FALSE</li>
+<li><strong>False negative (FN)</strong>: I predicted FALSE and it was actually TRUE</li>
+</ul>
+<p>From these, you can create a number of additional metrics that measure various
+things. In ROC Curves, there are two that are important:</p>
+<ul>
+<li><strong>True Positive Rate aka Sensitivity (TPR)</strong>: out of all the actual TRUE
+outcomes, how many did I predict TRUE?
+<ul>
+<li><span class="math inline">\(TPR = sensitivity = \frac{TP}{TP + FN}\)</span></li>
+<li>Higher is better!</li>
+</ul></li>
+<li><strong>False Positive Rate aka 1 - Specificity (FPR)</strong>: out of all the actual FALSE
+outcomes, how many did I predict TRUE?
+<ul>
+<li><span class="math inline">\(FPR = 1 - sensitivity = 1 - (\frac{TN}{TN + FP})\)</span></li>
+<li>Lower is better!</li>
+</ul></li>
+</ul>
+</div>
+<div id="building-the-roc-curve" class="section level3">
+<h3>BUILDING THE ROC CURVE</h3>
+<p>For the sake of the example, I built 3 models to compare: Random Forest,
+Logistic Regression, and random prediction using a uniform distribution.</p>
+<div id="step-1-rank-order-predictions" class="section level4">
+<h4>Step 1: Rank Order Predictions</h4>
+<p>To build the ROC curve for each model, you first rank order your predictions:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Actual</th>
+<th align="right">Predicted</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="right">0.9291</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="right">0.9200</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">0.8518</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.8489</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">0.8462</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.7391</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="step-2-calculate-tpr-fpr-for-first-iteration" class="section level4">
+<h4>Step 2: Calculate TPR &amp; FPR for First Iteration</h4>
+<p>Now, we step through the table. Using a “cutoff” as the first row (effectively
+the most likely to be TRUE), we say that the first row is predicted TRUE and
+the remaining are predicted FALSE.</p>
+<p>From the table below, we can see that the first row is FALSE, though we are
+predicting it TRUE. This leads to the following metrics for our first iteration:</p>
+<table>
+<colgroup>
+<col width="9%" />
+<col width="3%" />
+<col width="5%" />
+<col width="11%" />
+<col width="11%" />
+<col width="13%" />
+<col width="14%" />
+<col width="13%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">Iteration</th>
+<th align="right">TPR</th>
+<th align="right">FPR</th>
+<th align="right">Sensitivity</th>
+<th align="right">Specificity</th>
+<th align="right">True.Positive</th>
+<th align="right">False.Positive</th>
+<th align="right">True.Negative</th>
+<th align="right">False.Negative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.037</td>
+<td align="right">0</td>
+<td align="right">0.963</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">26</td>
+<td align="right">11</td>
+</tr>
+</tbody>
+</table>
+<p>This is what we’d expect. We have a 0% TPR on the first iteration because we got
+that single prediction wrong. Since we’ve only got 1 false positve, our FPR is
+still low: 3.7%.</p>
+</div>
+<div id="step-3-iterate-through-the-remaining-predictions" class="section level4">
+<h4>Step 3: Iterate Through the Remaining Predictions</h4>
+<p>Now, let’s go through all of the possible cut points and calculate the TPR and
+FPR.</p>
+<table>
+<colgroup>
+<col width="8%" />
+<col width="10%" />
+<col width="11%" />
+<col width="2%" />
+<col width="10%" />
+<col width="11%" />
+<col width="6%" />
+<col width="6%" />
+<col width="7%" />
+<col width="7%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Actual Outcome</th>
+<th align="right">Predicted Outcome</th>
+<th align="left">Model</th>
+<th align="right">Rank</th>
+<th align="right">True Positive Rate</th>
+<th align="right">False Positive Rate</th>
+<th align="right">Sensitivity</th>
+<th align="right">Specificity</th>
+<th align="right">True Negative</th>
+<th align="right">True Positive</th>
+<th align="right">False Negative</th>
+<th align="right">False Positive</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">FALSE</td>
+<td align="right">0.9291</td>
+<td align="left">Logistic Regression</td>
+<td align="right">1</td>
+<td align="right">0.0000</td>
+<td align="right">0.0370</td>
+<td align="right">0.0000</td>
+<td align="right">0.9630</td>
+<td align="right">26</td>
+<td align="right">0</td>
+<td align="right">11</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">FALSE</td>
+<td align="right">0.9200</td>
+<td align="left">Logistic Regression</td>
+<td align="right">2</td>
+<td align="right">0.0000</td>
+<td align="right">0.0741</td>
+<td align="right">0.0000</td>
+<td align="right">0.9259</td>
+<td align="right">25</td>
+<td align="right">0</td>
+<td align="right">11</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">0.8518</td>
+<td align="left">Logistic Regression</td>
+<td align="right">3</td>
+<td align="right">0.0909</td>
+<td align="right">0.0741</td>
+<td align="right">0.0909</td>
+<td align="right">0.9259</td>
+<td align="right">25</td>
+<td align="right">1</td>
+<td align="right">10</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.8489</td>
+<td align="left">Logistic Regression</td>
+<td align="right">4</td>
+<td align="right">0.1818</td>
+<td align="right">0.0741</td>
+<td align="right">0.1818</td>
+<td align="right">0.9259</td>
+<td align="right">25</td>
+<td align="right">2</td>
+<td align="right">9</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">TRUE</td>
+<td align="right">0.8462</td>
+<td align="left">Logistic Regression</td>
+<td align="right">5</td>
+<td align="right">0.2727</td>
+<td align="right">0.0741</td>
+<td align="right">0.2727</td>
+<td align="right">0.9259</td>
+<td align="right">25</td>
+<td align="right">3</td>
+<td align="right">8</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">TRUE</td>
+<td align="right">0.7391</td>
+<td align="left">Logistic Regression</td>
+<td align="right">6</td>
+<td align="right">0.3636</td>
+<td align="right">0.0741</td>
+<td align="right">0.3636</td>
+<td align="right">0.9259</td>
+<td align="right">25</td>
+<td align="right">4</td>
+<td align="right">7</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="step-4-repeat-steps-1-3-for-each-model" class="section level4">
+<h4>Step 4: Repeat Steps 1-3 for Each Model</h4>
+<p>Calculate the TPR &amp; FPR for each rank and model!</p>
+</div>
+<div id="step-5-plot-the-results-calculate-auc" class="section level4">
+<h4>Step 5: Plot the Results &amp; Calculate AUC</h4>
+<p>As you can see below, the Random Forest does remarkably well. It perfectly separated
+the outcomes in this example (to be fair, this is really small data and test
+data). What I mean is, when the data is rank ordered by the predicted likelihood
+of being TRUE, the actual outcome of TRUE are grouped together. There are no
+false positives. The Area Under the Curve (AUC) is 1 (<span class="math inline">\(area = hieght * width\)</span> for
+a rectangle/square).</p>
+<p>Logistic Regression does well - ~80% AUC is nothing to sneeze at.</p>
+<p>The random prediction does just better than a coin flip (50% AUC), but this is
+just random chance and a small sample.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/plot1-1.png" width="672" /></p>
+</div>
+</div>
+<div id="summary" class="section level3">
+<h3>SUMMARY</h3>
+<p>The AUC is a very important metric for comparing models. To properly understand
+it, you need to understand the ROC curve and the underlying calculations.</p>
+<p>In the end, AUC is showing how well a model is at classifying. The better it can
+separate the TRUEs from the FALSEs, the closer to 1 the AUC will be. This means
+the True Positive Rate is increasing faster than the False Positive Rate. More
+True Positives is better than more False Positives in prediction.</p>
+</div>

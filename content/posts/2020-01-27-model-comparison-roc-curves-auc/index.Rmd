@@ -1,0 +1,298 @@
+---
+title: "Model Comparision - ROC Curves & AUC"
+author: Jacob Rozran
+date: '2020-01-27'
+slug: model-comparison--understanding-ROC-curves-and-AUC
+summaryImage: "roc_curve.jpg"
+categories:
+- Data Science
+- AI
+- Modeling
+tags:
+- data science
+- AI
+- model coparison
+- ROC curves
+- AUC
+---
+
+### INTRODUCTION
+
+Whether you are a data professional or in a job that requires data driven 
+decisions, predictive analytics and related products (aka machine learning aka 
+ML aka artificial intelligence aka AI) are here and understanding them is 
+paramount. They are being used to drive industry. Because of this, understanding 
+how to compare predictive models is very important.
+
+This post gets into a very popular method of decribing how well a model performs: 
+the Area Under the Curve (AUC) metric. 
+
+As the term implies, AUC is a measure of area under the **curve**. The curve 
+referenced is the Reciever Operating Characteristic (ROC) curve. The ROC curve 
+is a way to visually represent how the **True Positive Rate (TPR)** increases as 
+the **False Positive Rate (FPR)** increases. 
+
+In plain english, the ROC curve is a visualization of how well a predictive 
+model is ordering the outcome - can it separate the two classes (TRUE/FALSE)? 
+If not (most of the time it is not perfect), how close does it get? This last 
+question can be answered with the AUC metric. 
+
+### THE BACKGROUND
+
+Before I explain, let's take a step back and understand the foundations of 
+**TPR** and **FPR**.
+
+For this post we are talking about a binary prediction (TRUE/FALSE). This could 
+be answering a question like: Is this fraud? (TRUE/FALSE). 
+
+In a predictive model, you get some right and some wrong for both the TRUE and 
+FALSE. Thus, you have four categories of outcomes: 
+
+* **True positive (TP)**: I predicted TRUE and it was actually TRUE
+* **False positive (FP)**: I predicted TRUE and it was actually FALSE
+* **True negative (TN)**: I predicted FALSE and it was actually FALSE
+* **False negative (FN)**: I predicted FALSE and it was actually TRUE
+
+From these, you can create a number of additional metrics that measure various 
+things. In ROC Curves, there are two that are important:
+
+* **True Positive Rate aka Sensitivity (TPR)**: out of all the actual TRUE 
+outcomes, how many did I predict TRUE? 
+    + $TPR = sensitivity = \frac{TP}{TP + FN}$
+    + Higher is better!
+* **False Positive Rate aka 1 - Specificity (FPR)**: out of all the actual FALSE 
+outcomes, how many did I predict TRUE?
+    + $FPR = 1 - sensitivity = 1 - (\frac{TN}{TN + FP})$
+    + Lower is better!
+
+### BUILDING THE ROC CURVE
+
+For the sake of the example, I built 3 models to compare: Random Forest, 
+Logistic Regression, and random prediction using a uniform distribution.
+
+#### Step 1: Rank Order Predictions
+
+To build the ROC curve for each model, you first rank order your predictions: 
+
+\center
+
+```{r rankorder, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+library(ggplot2)
+library(reshape2)
+library(randomForest)
+library(pROC)
+library(scales)
+library(knitr)
+
+set.seed(8675309)
+
+data("iris")
+iris$versicolor <- ifelse(iris$Species == "versicolor", TRUE, FALSE)
+
+train_set <- sample(1:nrow(iris), round(nrow(iris) * 0.75, 0))
+
+train <- iris[train_set, ]
+test <- iris[-train_set, ]
+
+log_reg <- glm(factor(versicolor) ~ Sepal.Length + Sepal.Width + Petal.Length + 
+                   Petal.Width, family = "binomial", data = train)
+rand_for <- randomForest(factor(versicolor) ~ Sepal.Length + Sepal.Width + 
+                             Petal.Length + Petal.Width, data = train,
+                         ntree = 5000, importance = TRUE)
+
+test$pred_log <- predict(log_reg, test[, c("Sepal.Length", "Sepal.Width", 
+                                           "Petal.Length", "Petal.Width")], 
+                         type = "response")
+test$pred_rf_mat <- predict(rand_for, test[, c("Sepal.Length", "Sepal.Width", 
+                                           "Petal.Length", "Petal.Width")], 
+                        type = "prob")
+
+test$pred_rf <- test$pred_rf_mat[, 2]
+
+test$pred_rand <- runif(nrow(test))
+
+test_dat <- melt(test, id.vars = "versicolor", 
+                    measure.vars = c("pred_log", "pred_rf", "pred_rand"))
+
+rf_tab <- test_dat[test_dat$variable == "pred_log", ]
+rf_tab <- rf_tab[order(rf_tab$value, decreasing = TRUE), ]
+rf_tab$variable <- NULL
+names(rf_tab) <- c("Actual", "Predicted")
+
+kable(head(rf_tab), row.names = FALSE, digits = 4)
+```
+
+\center
+
+#### Step 2: Calculate TPR & FPR for First Iteration
+
+Now, we step through the table. Using a "cutoff" as the first row (effectively 
+the most likely to be TRUE), we say that the first row is predicted TRUE and 
+the remaining are predicted FALSE. 
+
+From the table below, we can see that the first row is FALSE, though we are 
+predicting it TRUE. This leads to the following metrics for our first iteration: 
+
+\center
+
+```{r stepone,  echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+rf_tab$order <- 1:nrow(rf_tab)
+cut <- 1
+
+tn <- nrow(rf_tab[rf_tab$Actual == FALSE & 
+                       ifelse(rf_tab$order <= cut, 1, 0) == 0, ])
+fn <- nrow(rf_tab[rf_tab$Actual == TRUE & 
+                                ifelse(rf_tab$order <= cut, 1, 0) == 0, ])
+tp <- nrow(rf_tab[rf_tab$Actual == TRUE & 
+                                ifelse(rf_tab$order <= cut, 1, 0) == 1, ])
+fp <- nrow(rf_tab[rf_tab$Actual == FALSE & 
+                                ifelse(rf_tab$order <= cut, 1, 0) == 1, ])
+        
+sensitivity <- tp / (tp + fn)
+specificity <- tn / (fp + tn)
+        
+tpr <- sensitivity
+fpr <- 1 - specificity
+
+tmp <- data.frame(Iteration = cut,
+                  TPR = tpr,
+                  FPR = fpr,
+                  Sensitivity = sensitivity,
+                  Specificity = specificity,
+                  `True Positive` = tp,
+                  `False Positive` = fp,
+                  `True Negative` = tn,
+                  `False Negative` = fn)
+
+kable(tmp, row.names = FALSE, digits = 4)
+```
+
+\center
+
+This is what we'd expect. We have a 0% TPR on the first iteration because we got 
+that single prediction wrong. Since we've only got 1 false positve, our FPR is 
+still low: 3.7%.
+
+#### Step 3: Iterate Through the Remaining Predictions
+
+Now, let's go through all of the possible cut points and calculate the TPR and 
+FPR. 
+
+\center
+
+```{r iterate, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+roc_dat <- data.frame()
+
+for(predictor in unique(test_dat$variable)){
+    sub_dat <- test_dat[test_dat$variable == predictor, ]
+    sub_dat <- sub_dat[order(sub_dat$value, decreasing = TRUE), ]
+    sub_dat$order <- 1:nrow(sub_dat)
+    
+    for(cut in 1:nrow(sub_dat)) {
+        tn <- nrow(sub_dat[sub_dat$versicolor == FALSE & 
+                                ifelse(sub_dat$order <= cut, 1, 0) == 0, ])
+        fn <- nrow(sub_dat[sub_dat$versicolor == TRUE & 
+                                ifelse(sub_dat$order <= cut, 1, 0) == 0, ])
+        tp <- nrow(sub_dat[sub_dat$versicolor == TRUE & 
+                                ifelse(sub_dat$order <= cut, 1, 0) == 1, ])
+        fp <- nrow(sub_dat[sub_dat$versicolor == FALSE & 
+                                ifelse(sub_dat$order <= cut, 1, 0) == 1, ])
+        
+        sensitivity <- tp / (tp + fn)
+        specificity <- tn / (fp + tn)
+        
+        tpr <- sensitivity
+        fpr <- 1 - specificity
+        
+        act <- sub_dat$versicolor[sub_dat$order == cut]
+        pred <- sub_dat$value[sub_dat$order == cut]
+        
+        tmp_dat <- data.frame(actual = act,
+                              prediction = pred,
+                              model = predictor, 
+                              cut_point = cut,
+                              true_pos_rate = tpr,
+                              false_pos_rate = fpr,
+                              sensitivity = sensitivity,
+                              specificity = specificity,
+                              true_neg = tn,
+                              true_pos = tp,
+                              false_neg = fn,
+                              false_pos = fp)
+        
+        roc_dat <- rbind(roc_dat, tmp_dat)
+    }
+}
+
+disp_tab <- roc_dat[1:6, ]
+disp_tab$model <- "Logistic Regression"
+names(disp_tab) <- c("Actual Outcome", "Predicted Outcome", "Model", "Rank",
+                     "True Positive Rate", "False Positive Rate", "Sensitivity",
+                     "Specificity", "True Negative", "True Positive", 
+                     "False Negative", "False Positive")
+
+kable(disp_tab, row.names = FALSE, digits = 4)
+```
+
+\center
+
+#### Step 4: Repeat Steps 1-3 for Each Model
+
+Calculate the TPR & FPR for each rank and model!
+
+#### Step 5: Plot the Results & Calculate AUC
+
+As you can see below, the Random Forest does remarkably well. It perfectly separated 
+the outcomes in this example (to be fair, this is really small data and test 
+data). What I mean is, when the data is rank ordered by the predicted likelihood 
+of being TRUE, the actual outcome of TRUE are grouped together. There are no 
+false positives. The Area Under the Curve (AUC) is 1 ($area = hieght * width$ for 
+a rectangle/square).
+
+Logistic Regression does well - ~80% AUC is nothing to sneeze at. 
+
+The random prediction does just better than a coin flip (50% AUC), but this is 
+just random chance and a small sample. 
+
+```{r plot1, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+roc_dat_log <- roc(test_dat$versicolor[test_dat$variable == "pred_log"], 
+                   test_dat$value[test_dat$variable == "pred_log"])
+
+roc_dat_rf <- roc(test_dat$versicolor[test_dat$variable == "pred_rf"], 
+                  test_dat$value[test_dat$variable == "pred_rf"])
+
+roc_dat_rand <- roc(test_dat$versicolor[test_dat$variable == "pred_rand"], 
+                    test_dat$value[test_dat$variable == "pred_rand"])
+
+ggplot(roc_dat, aes(x = false_pos_rate, y = true_pos_rate, group = model, 
+                    color = model)) + 
+    geom_line(size = 2) + 
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed") + 
+    scale_color_manual(values = c("dark gray", "light blue", "navy"),
+                       labels = c(paste0("Logistic Regression, AUC = ",
+                                         round(as.numeric(roc_dat_log$auc), 4)),
+                                  paste0("Random Prediction, AUC = ",
+                                         round(as.numeric(roc_dat_rand$auc), 4)),
+                                  paste0("Random Forest, AUC = ",
+                                         round(as.numeric(roc_dat_rf$auc), 4)))) + 
+    theme(panel.background = element_blank(), 
+          panel.grid.major = element_line("light gray"), 
+          axis.ticks = element_line("light gray"), 
+          legend.position = "top", legend.title = element_blank()) + 
+    scale_y_continuous(labels = percent_format()) + 
+    scale_x_continuous(labels = percent_format()) + 
+    ggtitle("ROC Comparison - Logistic Regression vs. Random Forest") + 
+    xlab("False Positive Rate (1 - specificity)") +
+    ylab("True Positive Rate (sensitivity)")
+
+```
+
+### SUMMARY
+
+The AUC is a very important metric for comparing models. To properly understand 
+it, you need to understand the ROC curve and the underlying calculations. 
+
+In the end, AUC is showing how well a model is at classifying. The better it can 
+separate the TRUEs from the FALSEs, the closer to 1 the AUC will be. This means 
+the True Positive Rate is increasing faster than the False Positive Rate. More 
+True Positives is better than more False Positives in prediction.

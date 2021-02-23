@@ -1,0 +1,104 @@
+---
+title: 'Using R and Splunk: Lookups of More Than 10,000
+  Results'
+author: Jacob Rozran
+date: '2015-12-04'
+slug: using-r-and-splunk
+categories:
+  - Data Engineering
+tags:
+  - data engineering
+  - R
+  - Splunk
+  - api
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Splunk, for some probably very good reasons, has limits on how many results are
+returned by sub-searches (which in turn limits us on lookups, too). Because of
+this, I’ve used R to search Splunk through it’s API endpoints (using the httr
+package) and utilize loops, the plyr package, and other data manipulation
+flexibilities given through the use of R.</p>
+<p>This has allowed me to answer some questions for our business team that at the
+surface seem simple enough, but the data gathering and manipulation get either
+too complex or large for Splunk to handle efficiently. Here are some examples:</p>
+<ul>
+<li>Of the 1.5 million customers we’ve emailed in a marketing campaign, how many
+of them have made the conversion?</li>
+<li>How are our 250,000 beta users accessing the platform?</li>
+<li>Who are the users logging into our system from our internal IPs?</li>
+</ul>
+<p>The high level steps to using R and Splunk are:</p>
+<ol style="list-style-type: decimal">
+<li>Import the lookup values of concern as a csv</li>
+<li>Create the lookup as a string</li>
+<li>Create the search string including the lookup just created</li>
+<li>Execute the GET to get the data</li>
+<li>Read the response into a data table</li>
+</ol>
+<p>I’ve taken this one step further; because my lookups are usually LARGE, I end up
+breaking up the search into smaller chunks and combining the results at the end.</p>
+<p>Here is some example code that you can edit to show what I’ve done and how I’ve
+done it. This bit of code will iteratively run the “searchstring” 250 times and
+combine the results.</p>
+<pre class="r"><code>## LIBRARY THAT ENABLES THE HTTPS CALL ## 
+library(httr)
+
+## READ IN THE LOOKUP VALUES OF CONCERN ##
+mylookup &lt;- read.csv(&quot;mylookup.csv&quot;, header = FALSE)
+
+## ARBITRARY &quot;CHUNK&quot; SIZE TO KEEP SEARCHES SMALLER ##
+start &lt;- 1
+end &lt;- 1000
+
+## CREATE AN EMPTY DATA FRAME THAT WILL HOLD END RESULTS ##
+alldata &lt;- data.frame()
+
+## HOW MANY &quot;CHUNKS&quot; WILL NEED TO BE RUN TO GET COMPLETE RESULTS ##
+for(i in 1:250){
+ ## CREATES THE LOOKUP STRING FROM THE mylookup VARIABLE ##
+ lookupstring &lt;- paste(mylookup[start:end], sep = &quot;&quot;, 
+                       collapse = &#39;&quot; OR VAR_NAME=&quot;&#39;)
+ 
+ ## CREATES THE SEARCH STRING; THIS IS A SIMPLE SEARCH EXAMPLE ##
+ searchstring &lt;- paste(&#39;index = &quot;my_splunk_index&quot; (VAR_NAME=&quot;&#39;, 
+                       lookupstring, &#39;&quot;) | stats count BY VAR_NAME&#39;, 
+                       sep = &quot;&quot;)
+ 
+ ## RUNS THE SEARCH; SUB IN YOUR SPLUNK LINK, USERNAME, AND PASSWORD ##
+ response &lt;- GET(&quot;https://our.splunk.link:8089/&quot;, 
+                 path = &quot;servicesNS/admin/search/search/jobs/export&quot;, 
+                 encode=&quot;form&quot;, config(ssl_verifyhost=FALSE, ssl_verifypeer=0), 
+                 authenticate(&quot;USERNAME&quot;, &quot;PASSWORD&quot;), 
+                 query=list(search=paste0(&quot;search &quot;, searchstring, 
+                                          collapse=&quot;&quot;, sep=&quot;&quot;), 
+                            output_mode=&quot;csv&quot;))
+ 
+ ## CHANGES THE RESULTS TO A DATA TABLE ## 
+ result &lt;- read.table(text = content(response, as = &quot;text&quot;), sep = &quot;,&quot;, 
+                      header = TRUE, stringsAsFactors = FALSE)
+ 
+ ## BINDS THE CURRENT RESULTS WITH THE OVERALL RESULTS ##
+ alldata &lt;- rbind(alldata, result)
+ 
+ ## UPDATES THE START POINT
+ start &lt;- end + 1
+ 
+ ## UPDATES THE END POINT, BUT MAKES SURE IT DOESN&#39;T GO TOO FAR ##
+ if((end + 1000) &gt; length(allusers)){
+                end &lt;- length(allusers)
+         } else {
+                end &lt;- end + 1000
+         }
+ 
+ ## FOR TROUBLESHOOTING, I PRINT THE ITERATION ##
+ #print(i)
+}
+
+## WRITES THE RESULTS TO A CSV ##
+write.table(alldata, &quot;mydata.csv&quot;, row.names = FALSE, sep = &quot;,&quot;)</code></pre>
+<p>So - that is how you do a giant lookup against Splunk data with R! I am sure
+that there are more efficient ways of doing this, even in the Splunk app itself,
+but this has done the trick for me!</p>

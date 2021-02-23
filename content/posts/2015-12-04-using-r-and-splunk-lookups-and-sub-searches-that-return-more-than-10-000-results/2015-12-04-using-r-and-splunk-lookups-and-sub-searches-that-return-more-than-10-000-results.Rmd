@@ -1,0 +1,107 @@
+---
+title: 'Using R and Splunk: Lookups of More Than 10,000
+  Results'
+author: Jacob Rozran
+date: '2015-12-04'
+slug: using-r-and-splunk
+categories:
+  - Data Engineering
+tags:
+  - data engineering
+  - R
+  - Splunk
+  - api
+---
+
+Splunk, for some probably very good reasons, has limits on how many results are 
+returned by sub-searches (which in turn limits us on lookups, too). Because of 
+this, I've used R to search Splunk through it's API endpoints (using the httr 
+package) and utilize loops, the plyr package, and other data manipulation 
+flexibilities given through the use of R.
+
+This has allowed me to answer some questions for our business team that at the 
+surface seem simple enough, but the data gathering and manipulation get either 
+too complex or large for Splunk to handle efficiently. Here are some examples:
+
+* Of the 1.5 million customers we've emailed in a marketing campaign, how many 
+of them have made the conversion?
+* How are our 250,000 beta users accessing the platform?
+* Who are the users logging into our system from our internal IPs?
+
+The high level steps to using R and Splunk are:
+
+1. Import the lookup values of concern as a csv
+2. Create the lookup as a string
+3. Create the search string including the lookup just created
+4. Execute the GET to get the data
+5. Read the response into a data table
+
+I've taken this one step further; because my lookups are usually LARGE, I end up 
+breaking up the search into smaller chunks and combining the results at the end.
+
+Here is some example code that you can edit to show what I've done and how I've 
+done it. This bit of code will iteratively run the "searchstring" 250 times and 
+combine the results. 
+
+```{r snippet, eval = FALSE}
+## LIBRARY THAT ENABLES THE HTTPS CALL ## 
+library(httr)
+
+## READ IN THE LOOKUP VALUES OF CONCERN ##
+mylookup <- read.csv("mylookup.csv", header = FALSE)
+
+## ARBITRARY "CHUNK" SIZE TO KEEP SEARCHES SMALLER ##
+start <- 1
+end <- 1000
+
+## CREATE AN EMPTY DATA FRAME THAT WILL HOLD END RESULTS ##
+alldata <- data.frame()
+
+## HOW MANY "CHUNKS" WILL NEED TO BE RUN TO GET COMPLETE RESULTS ##
+for(i in 1:250){
+ ## CREATES THE LOOKUP STRING FROM THE mylookup VARIABLE ##
+ lookupstring <- paste(mylookup[start:end], sep = "", 
+                       collapse = '" OR VAR_NAME="')
+ 
+ ## CREATES THE SEARCH STRING; THIS IS A SIMPLE SEARCH EXAMPLE ##
+ searchstring <- paste('index = "my_splunk_index" (VAR_NAME="', 
+                       lookupstring, '") | stats count BY VAR_NAME', 
+                       sep = "")
+ 
+ ## RUNS THE SEARCH; SUB IN YOUR SPLUNK LINK, USERNAME, AND PASSWORD ##
+ response <- GET("https://our.splunk.link:8089/", 
+                 path = "servicesNS/admin/search/search/jobs/export", 
+                 encode="form", config(ssl_verifyhost=FALSE, ssl_verifypeer=0), 
+                 authenticate("USERNAME", "PASSWORD"), 
+                 query=list(search=paste0("search ", searchstring, 
+                                          collapse="", sep=""), 
+                            output_mode="csv"))
+ 
+ ## CHANGES THE RESULTS TO A DATA TABLE ## 
+ result <- read.table(text = content(response, as = "text"), sep = ",", 
+                      header = TRUE, stringsAsFactors = FALSE)
+ 
+ ## BINDS THE CURRENT RESULTS WITH THE OVERALL RESULTS ##
+ alldata <- rbind(alldata, result)
+ 
+ ## UPDATES THE START POINT
+ start <- end + 1
+ 
+ ## UPDATES THE END POINT, BUT MAKES SURE IT DOESN'T GO TOO FAR ##
+ if((end + 1000) > length(allusers)){
+                end <- length(allusers)
+         } else {
+                end <- end + 1000
+         }
+ 
+ ## FOR TROUBLESHOOTING, I PRINT THE ITERATION ##
+ #print(i)
+}
+
+## WRITES THE RESULTS TO A CSV ##
+write.table(alldata, "mydata.csv", row.names = FALSE, sep = ",")
+```
+
+So - that is how you do a giant lookup against Splunk data with R! I am sure 
+that there are more efficient ways of doing this, even in the Splunk app itself, 
+but this has done the trick for me!

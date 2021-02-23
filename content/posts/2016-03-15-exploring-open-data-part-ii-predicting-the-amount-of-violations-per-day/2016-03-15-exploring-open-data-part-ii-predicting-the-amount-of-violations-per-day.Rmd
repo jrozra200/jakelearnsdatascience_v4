@@ -1,0 +1,382 @@
+---
+title: Exploring Open Data - Predicting the Amoung of Violations
+author: Jacob Rozran
+date: '2016-03-15'
+slug: exploring-open-data-predicting-the-amount-of-violations
+categories:
+  - Open Data
+  - Data Analysis
+  - Data Science
+tags:
+  - data science
+  - data analysis
+  - open data
+  - R
+  - random forest
+  - linear regression
+---
+
+### Introduction
+
+In 
+[my last post](https://www.jakelearnsdatascience.com/posts/exploring-open-data-philadelphia-parking-violations/), 
+I went over some of the highlights of the open data set of all Philadelphia 
+Parking Violations. In this post, I'll go through the steps to build a model to 
+predict the amount of violations the city issues on a daily basis. I'll walk you 
+through cleaning and building the data set, selecting and creating the important 
+features, and building predictive models using 
+[Random Forests](https://en.wikipedia.org/wiki/Random_forest) and 
+[Linear Regression](https://en.wikipedia.org/wiki/Linear_regression).
+
+### Step 1: Load Packages and Data
+
+Just an initial step to get the right libraries and data loaded in R.
+
+```{r load, eval = FALSE}
+library(plyr)
+library(randomForest)
+
+## DATA FILE FROM OPENDATAPHILLY
+ptix <- read.csv("Parking_Violations.csv")
+
+## READ IN THE WEATHER DATA (FROM NCDC)
+weather_data <- read.csv("weather_data.csv")
+
+## LIST OF ALL FEDERAL HOLIDAYS DURING THE 
+## RANGE OF THE DATA SET
+holidays <- as.Date(c("2012-01-02", "2012-01-16", 
+                      "2012-02-20", "2012-05-28", 
+                      "2012-07-04", "2012-09-03", 
+                      "2012-10-08", "2012-11-12", 
+                      "2012-11-22", "2012-12-25", 
+                      "2013-01-01", "2013-01-21", 
+                      "2013-02-18", "2013-05-27", 
+                      "2013-07-04", "2013-09-02", 
+                      "2013-10-14", "2013-11-11", 
+                      "2013-11-28", "2013-12-25", 
+                      "2014-01-01", "2014-01-20", 
+                      "2014-02-17", "2014-05-26", 
+                      "2014-07-04", "2014-09-01", 
+                      "2014-10-13", "2014-11-11", 
+                      "2014-11-27", "2014-12-25", 
+                      "2015-01-01", "2015-01-09", 
+                      "2015-02-16", "2015-05-25", 
+                      "2015-07-03", "2015-09-07"))
+```
+
+### Step 2: Formatting the Data
+
+First things first, we have to total the amount of tickets per day from the raw 
+data. For this, I use the plyr command ddply. Before I can use the ddply command, 
+I need to format the Issue.Date.and.Time.column to be a Date variable in the R 
+context.
+
+```{r formatting, eval = FALSE}
+days <- as.data.frame(as.Date(
+                      ptix$Issue.Date.and.Time, 
+                      format = "%m/%d/%Y"))
+names(days) <- "DATE"
+count_by_day <- ddply(days, .(DATE), summarize, 
+                      count = length(DATE)) 
+```
+
+Next, I do the same exact date formatting with the weather data.
+
+```{r formatting_2, eval = FALSE}
+weather_data$DATE <- as.Date(as.POSIXct(strptime(as.character(weather_data$DATE), 
+                                                 format = "%Y%m%d")), 
+                             format = "%m/%d/%Y")
+```
+
+Now that both the ticket and weather data have the same date format (and name), 
+we can use the join function from the plyr package.
+
+```{r formatting_3, eval = FALSE}
+count_by_day <- join(count_by_day, weather_data, by = "DATE")
+```
+
+With the data joined by date, it is time to clean. There are a number of columns 
+with unneeded data (weather station name, for example) and others with little or 
+no data in them, which I just flatly remove. The data has also been coded with 
+negative values representing that data had not been collected for any number of 
+reasons (I'm not surprised that snow was not measured in the summer); for that 
+data, I've made any values coded -9999 into 0. There are some days where the 
+maximum or minimum temperature was not gathered (I'm not sure why). As this is 
+the main variable I plan to use to predict daily violations, I drop the entire 
+row if the temperature data is missing.
+
+```{r formatting_4, eval = FALSE}
+## I DON'T CARE ABOUT THE STATION OR ITS NAME - 
+## GETTING RID OF IT
+count_by_day$STATION <- NULL
+count_by_day$STATION_NAME <- NULL
+
+## A BUNCH OF VARIABLE ARE CODED WITH NEGATIVE VALUES 
+## IF THEY WEREN'T COLLECTED - CHANGING THEM TO 0s
+count_by_day$MDPR[count_by_day$MDPR < 0] <- 0
+count_by_day$DAPR[count_by_day$DAPR < 0] <- 0
+count_by_day$PRCP[count_by_day$PRCP < 0] <- 0
+count_by_day$SNWD[count_by_day$SNWD < 0] <- 0
+count_by_day$SNOW[count_by_day$SNOW < 0] <- 0
+count_by_day$WT01[count_by_day$WT01 < 0] <- 0
+count_by_day$WT03[count_by_day$WT03 < 0] <- 0
+count_by_day$WT04[count_by_day$WT04 < 0] <- 0
+
+## REMOVING ANY ROWS WITH MISSING TEMP DATA
+count_by_day <- count_by_day[
+                         count_by_day$TMAX > 0, ]
+count_by_day <- count_by_day[
+                         count_by_day$TMIN > 0, ]
+
+## GETTING RID OF SOME NA VALUES THAT POPPED UP
+count_by_day <- count_by_day[!is.na(
+                         count_by_day$TMAX), ]
+
+## REMOVING COLUMNS THAT HAVE LITTLE OR NO DATA 
+## IN THEM (ALL 0s)
+count_by_day$TOBS <- NULL
+count_by_day$WT01 <- NULL
+count_by_day$WT04 <- NULL
+count_by_day$WT03 <- NULL
+
+## CHANGING THE DATA, UNNECESSARILY, FROM 10ths OF 
+## DEGREES CELCIUS TO JUST DEGREES CELCIUS
+count_by_day$TMAX <- count_by_day$TMAX / 10
+count_by_day$TMIN <- count_by_day$TMIN / 10
+```
+
+### Step 3: Visualizing the Data
+
+At this point, we have joined our data sets and gotten rid of the unhelpful 
+"stuff." What does the data look like?
+
+*Sorry... I've lost this image*
+
+There are clearly two populations here. With the benefit of hindsight, the small 
+population on the left of the histogram is mainly Sundays. The larger population 
+with the majority of the data is all other days of the week.
+
+Let's make some new features to explore this idea.
+
+### Step 4: New Feature Creation
+
+As we see in the histogram above, there are obviously a few populations in the 
+data - I know that day of the week, holidays, and month of the year likely have 
+some strong influence on how many violations are issued. If you think about it, 
+most parking signs include the clause: "Except Sundays and Holidays." Plus, 
+spending more than a few summers in Philadelphia at this point, I know that from 
+Memorial Day until Labor Day the city relocates to the *South* Jersey Shore 
+(emphasis on the South part of the Jersey Shore). That said - I add in those 
+features as predictors.
+
+```{r feature_creation, eval = FALSE}
+## FEATURE CREATION - ADDING IN THE DAY OF WEEK
+count_by_day$DOW <- as.factor(weekdays(count_by_day$DATE))
+
+## FEATURE CREATION - ADDING IN IF THE DAY WAS A HOLIDAY
+count_by_day$HOL <- 0
+count_by_day$HOL[as.character(count_by_day$DATE) %in% 
+                 as.character(holidays)] <- 1
+count_by_day$HOL <- as.factor(count_by_day$HOL)
+
+## FEATURE CREATION - ADDING IN THE MONTH
+count_by_day$MON <- as.factor(months(count_by_day$DATE))
+```
+
+Now - let's see if the Sunday thing is real. Here is a scatterplot of the data. 
+The circles represent Sundays; triangles are all other days of the week.
+
+*I've also unfortunately lost this image*
+
+You can clearly see that Sunday's tend to do their own thing in a very 
+consistent manner that is similar to the rest of the week. In other words, the 
+slope for Sundays is very close to that of the slope for all other days of the 
+week. There are some points that don't follow those trends, which are likely due 
+to snow, holidays, and/or other man-made or weather events.
+
+Let's split the data into a training and test set (that way we can see how well 
+we do with the model). I'm arbitrarily making the test set the last year of data; 
+everything before that is the training set.
+
+```{r feature_split, eval = FALSE}
+train <- count_by_day[count_by_day$DATE < "2014-08-01", ]
+test <- count_by_day[count_by_day$DATE >= "2014-08-01", ]
+```
+
+### Step 5: Feature Identification
+
+We now have a data set that is ready for some model building! The problem to 
+solve next is figuring out which features best explain the count of violations 
+issued each day. My preference is to use Random Forests to tell me which features 
+are the most important. We'll also take a look to see which, if any, variables 
+are highly correlated. High correlation amongst input variables will lead to 
+high variability due to multicollinearity issues.
+
+```{r feature_id, eval = FALSE}
+featForest <- randomForest(count ~ MDPR + DAPR + PRCP + 
+                                   SNWD + SNOW + TMAX + 
+                                   TMIN + DOW + HOL + MON, 
+                           data = train, importance = TRUE,
+                           ntree = 10000)
+
+## PLOT THE VARIABLE TO SEE THE IMPORTANCE
+varImpPlot(featForest)
+```
+
+In the Variable Importance Plot below, you can see very clearly that the day of 
+the week (**DOW**) is by far the most important variable in describing the amount of 
+violations written per day. This is followed by whether or not the day was a 
+holiday (**HOL**), the minimum temperature (**TMIN**), and the month (**MON**). The maximum 
+temperature is in there, too, but I think that it is likely highly correlated 
+with the minimum temperature (we'll see that next). The rest of the variables 
+have very little impact.
+
+*another image lost to the sands of time*
+
+```{r cor, eval = FALSE}
+cor(count_by_day[,c(3:9)])
+```
+
+I'll skip the entire output of the correlation table, but **TMIN** and **TMAX** 
+have a correlation coefficient of 0.940379171. Because **TMIN** has a higher 
+variable importance and there is a high correlation between the **TMIN** and 
+**TMAX**, I'll leave **TMAX** out of the model.
+
+### Step 6: Building the Models
+
+The goal here was to build a multiple linear regression model - since I've 
+already started down the path of Random Forests, I'll do one of those, too, and 
+compare the two. To build the models, we do the following:
+
+```{r build_models, eval = FALSE}
+## BUILD ANOTHER FOREST USING THE IMPORTANT VARIABLES
+predForest <- randomForest(count ~ DOW + HOL + TMIN + MON, 
+                           data = train, importance = TRUE, 
+                           ntree = 10000)
+
+## BUILD A LINEAR MODEL USING THE IMPORTANT VARIABLES
+linmod_with_mon <- lm(count ~ TMIN + DOW + HOL + MON, 
+                      data = train)
+```
+
+In looking at the summary, I have questions on whether or not the month variable 
+(**MON**) is significant to the model or not. Many of the variables have rather 
+high p-values.
+
+```{r summary1, eval = FALSE}
+summary(linmod_with_mon)
+
+Call:
+lm(formula = count ~ TMIN + DOW + HOL + MON, data = train)
+
+Residuals:
+    Min     1Q Median      3Q    Max 
+-4471.5 -132.1   49.6   258.2 2539.8 
+
+Coefficients:
+              Estimate Std. Error  t value Pr(>|t|) 
+(Intercept)  5271.4002    89.5216   58.884  < 2e-16 ***
+TMIN          -15.2174     5.6532   -2.692 0.007265 ** 
+DOWMonday    -619.5908    75.2208   -8.237 7.87e-16 ***
+DOWSaturday  -788.8261    74.3178  -10.614  < 2e-16 ***
+DOWSunday   -3583.6718    74.0854  -48.372  < 2e-16 ***
+DOWThursday   179.0975    74.5286    2.403 0.016501 * 
+DOWTuesday   -494.3059    73.7919   -6.699 4.14e-11 ***
+DOWWednesday -587.7153    74.0264   -7.939 7.45e-15 ***
+HOL1        -3275.6523   146.8750  -22.302  < 2e-16 ***
+MONAugust     -99.8049   114.4150   -0.872 0.383321 
+MONDecember  -390.2925   109.4594   -3.566 0.000386 ***
+MONFebruary  -127.8091   112.0767   -1.140 0.254496 
+MONJanuary    -73.0693   109.0627   -0.670 0.503081 
+MONJuly      -346.7266   113.6137   -3.052 0.002355 ** 
+MONJune       -30.8752   101.6812   -0.304 0.761481 
+MONMarch       -1.4980    94.8631   -0.016 0.987405 
+MONMay          0.1194    88.3915    0.001 0.998923 
+MONNovember   170.8023    97.6989    1.748 0.080831 . 
+MONOctober    125.1124    92.3071    1.355 0.175702 
+MONSeptember  199.6884   101.9056    1.960 0.050420 . 
+---
+Signif. codes: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 544.2 on 748 degrees of freedom
+Multiple R-squared: 0.8445, Adjusted R-squared: 0.8405 
+F-statistic: 213.8 on 19 and 748 DF, p-value: < 2.2e-16
+```
+
+To verify this, I build the model without the **MON** term and then do an F-Test 
+to compare using the results of the ANOVA tables below.
+
+```{r anova, eval = FALSE}
+## FIRST ANOVA TABLE (WITH THE MON TERM)
+anova(linmod_with_mon)
+Analysis of Variance Table
+
+Response: count
+           Df     Sum Sq   Mean Sq  F value    Pr(>F) 
+TMIN        1   16109057  16109057  54.3844 4.383e-13 ***
+DOW         6 1019164305 169860717 573.4523 < 2.2e-16 ***
+HOL         1  147553631 147553631 498.1432 < 2.2e-16 ***
+MON        11   20322464   1847497   6.2372 6.883e-10 ***
+Residuals 748  221563026    296207 
+
+## SECOND ANOVA TABLE (WITHOUT THE MON TERM)
+anova(linmod_wo_mon)
+Analysis of Variance Table
+
+Response: count
+           Df     Sum Sq   Mean Sq F value    Pr(>F) 
+TMIN        1   16109057  16109057  50.548 2.688e-12 ***
+DOW         6 1019164305 169860717 532.997 < 2.2e-16 ***
+HOL         1  147553631 147553631 463.001 < 2.2e-16 ***
+Residuals 759  241885490    318690 
+
+## Ho: B9 = B10 = B11 = B12 = B13 = B14 = B15 = B16 = 
+##     B17 = B18 = B19 = 0
+## Ha: At least one is not equal to 0
+
+## F-Stat = MSdrop / MSE = 
+##          ((SSR1 - SSR2) / (DF(R)1 - DF(R)2)) / MSE
+
+f_stat <- ((241885490 - 221563026) / (759 - 748)) / 296207
+
+## P_VALUE OF THE F_STAT CALCULATED ABOVE
+p_value <- 1 - pf(f_stat, 11, 748)
+```
+
+Since the P-Value 6.8829e-10 is MUCH MUCH less than 0.05, I can reject the null 
+hypothesis and conclude that at least one of the parameters associated with the 
+**MON** term is not zero. Because of this, I'll keep the term in the model.
+
+### Step 7: Apply the Models to the Test Data
+
+Below I call the predict function to see how the Random Forest and Linear Model 
+predict the test data. I am rounding the prediction to the nearest integer. To 
+determine which model performs better, I am calculating the difference in 
+absolute value of the predicted value from the actual count.
+
+```{r test, eval = FALSE}
+## PREDICT THE VALUES BASED ON THE MODELS
+test$RF <- round(predict(predForest, test), 0)
+test$LM <- round(predict.lm(linmod_with_mon, test), 0)
+
+## SEE THE ABSOLUTE DIFFERENCE FROM THE ACTUAL
+difOfRF <- sum(abs(test$RF - test$count))
+difOfLM <- sum(abs(test$LM - test$count))
+```
+
+### Conclusion
+
+As it turns out, the Linear Model performs better than the Random Forest model. 
+I am relatively pleased with the Linear Model - an R-Squared value of 0.8445 
+ain't nothin' to shake a stick at. You can see that Random Forests are very 
+useful in identifying the important features. To me, it tends to be a bit more 
+of a "black box" in comparison the linear regression - I hesitate to use it at 
+work for more than a feature identification tool.
+
+Overall - a nice little experiment and a great dive into some open data. I now 
+know that PPA rarely takes a day off, regardless of the weather. I'd love to 
+know how much of the fines they write are actually collected. I may also dive 
+into predicting what type of ticket you received based on your location, time 
+of ticket, etc. All in another day's work!
+
+Thanks for reading.

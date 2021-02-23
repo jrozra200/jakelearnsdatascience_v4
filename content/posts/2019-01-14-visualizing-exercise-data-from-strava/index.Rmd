@@ -1,0 +1,273 @@
+---
+title: Visualizing Exercise Data from Strava
+author: Jacob Rozran
+date: '2019-01-14'
+slug: visualizing-exercise-data-from-strava
+summaryImage: 'ridgeplot-1.png'
+categories:
+  - Data Visualization
+  - Data Engineering
+tags:
+  - data visualization
+  - data engineering
+  - R
+  - ggplot
+  - rStrava
+  - Strava
+---
+
+### INTRODUCTION
+
+My wife introduced me to cycling in 2014 - I fell in love with it and went all 
+in. That first summer after buying my bike, I rode over 500 miles (more on that 
+below). My neighbors at the time, also cyclists, introduced me to the app
+[Strava](https://www.strava.com/). Ever since then, I've tracked all of my rides, 
+runs, hikes, walks (perhaps not really exercise that needs to be tracked... but 
+I hurt myself early in 2018 and that's all I could do for a while), etc.
+everything I could, I tracked. 
+
+I got curious and found a package, [rStrava](https://github.com/fawda123/rStrava), 
+where I can download all of my activity. Once I had it, I put it into a few 
+visualizations.
+
+### ESTABLISH STRAVA AUTHENTICATION
+
+First thing I had to do was set up a Strava account and application. I found 
+some really nice instructions on 
+[another blog](http://www.open-thoughts.com/2017/01/the-quantified-cyclist-analysing-strava-data-using-r/) 
+that helped walk me through this. 
+
+After that, I installed rStrava and set up authentication (you only have to do 
+this the first time).
+
+```{r getting_auth_setup, eval = FALSE}
+## INSTALLING THE NECESSARY PACKAGES
+install.packages("devtools")
+devtools::install_github('fawda123/rStrava')
+
+## LOAD THE LIBRARY
+library(rStrava)
+
+## ESTABLISH THE APP CREDENTIALS
+name <- 'jakelearnsdatascience' 
+client_id  <- '31528' 
+secret <- 'MY_SECRET_KEY'
+
+## CREATE YOUR STRAVA TOKEN
+token <- httr::config(token = strava_oauth(name, client_id, secret, app_scope = "read_all",
+                                           cache = TRUE)) 
+## cache = TRUE is optional - but it saves your token to the working directory
+```
+
+### GET MY EXERCISE DATA
+
+Now that authentication is setup, using the **rStrava** package to pull activity 
+data is relatively straightforward.
+
+```{r hide_oauth_local, echo = FALSE}
+oauth_location <- ".httr-oauth"
+```
+
+```{r get_strava_data}
+library(rStrava)
+
+## LOAD THE TOKEN (AFTER THE FIRST TIME)
+stoken <- httr::config(token = readRDS(oauth_location)[[1]])
+
+## GET STRAVA DATA USING rStrava FUNCTION FOR MY ATHLETE ID
+my_act <- get_activity_list(stoken)
+```
+
+This function returns a list of activities. class(my_act): `r class(my_act)`.
+
+In my case, there are `r length(my_act)` activies. 
+
+### FORMATTING THE DATA
+
+To make the data easier to work with, I convert it to a data frame. There are 
+many more fields than I've selected below - these are all I want for this post. 
+
+```{r convert_to_df}
+info_df <- data.frame()
+for(act in 1:length(my_act)){
+        tmp <- my_act[[act]]
+        
+        tmp_df <- data.frame(name = tmp$name,
+                             type = tmp$type,
+                             distance = tmp$distance,
+                             moving_time = tmp$moving_time,
+                             elapsed_time = tmp$elapsed_time,
+                             start_date = tmp$start_date_local,
+                             total_elevation_gain = tmp$total_elevation_gain,
+                             trainer = tmp$trainer,
+                             manual = tmp$manual,
+                             average_speed = tmp$average_speed,
+                             max_speed = tmp$max_speed)
+        
+        info_df <- rbind(info_df, tmp_df)
+}
+```
+
+I want to convert a few fields to units that make more sense for me (miles, 
+feet, hours instead of meters and seconds). I've also created a number of features, 
+though I've suppressed the code here. You can see all of the code on 
+[github](https://github.com/jrozra200/jakelearnsdatascience_v2/blob/master/content/post/2019-01-09-visualizing-data-from-strava.Rmd).
+
+```{r feature_creation, message = FALSE, warning = FALSE, error = FALSE, echo = FALSE}
+library(dplyr)
+library(lubridate)
+
+info_df$miles <- info_df$distance / 1609.34 # CONVERT METERS TO MILES
+info_df$moving_time_hour <- info_df$moving_time / 3600 # CONVERT SECONDS TO HOURS
+info_df$avg_mph <- info_df$miles / info_df$moving_time_hour # CALCULATE MPH
+info_df$total_elevation_gain_ft <- info_df$total_elevation_gain * 
+        3.28084 # CONVERT METERS TO FEET
+
+# CONVERT STRING DATE TO DATE CLASS
+info_df$start_date <- as.Date(info_df$start_date, "%Y-%m-%dT%H:%M:%SZ") 
+info_df <- info_df[info_df$start_date <= "2019-01-01", ]
+info_df$mon <- month(info_df$start_date) # PULL OUT THE MONTH (FOR GROUPING)
+info_df$year <- year(info_df$start_date) # PULL OUT THE YEAR (FOR GROUPING)
+
+# RENAME ACTIVITIES WHERE APPROPRIATE
+info_df$activity <- ifelse(grepl("soccer", tolower(info_df$name)), "Soccer",
+                           ifelse(info_df$type == "Run" & info_df$trainer == TRUE,
+                                  "Treadmill",
+                                  ifelse(info_df$type == "Ride" & info_df$trainer == TRUE,
+                                         "Peloton", as.character(info_df$type))))
+
+info_df <- info_df[info_df$activity != "Workout", ] # REMOVE PLAIN GYM WORKOUTS
+
+# ORDER ACTIVITIES TO GET THE CUMULATIVE SUM OF MILES
+info_df <- info_df[order(info_df$start_date, decreasing = FALSE), ]
+info_df$total_sum <- cumsum(info_df$miles) # CALCULATE THE OVERALL CUMULATIVE MILES
+
+# FOR EACH UNIQUE ACTIVITY, CALCULATE THE CUMULATIVE SUM
+info_sum <- data.frame()
+for(act in unique(info_df$activity)){
+        tmp <- info_df[info_df$activity == act, ]
+        
+        tmp$act_cum <- cumsum(tmp$miles)
+        
+        info_sum <- rbind(info_sum, tmp)
+}
+
+## FINALLY - LET'S GROUP THE ACTIVITIES BY MONTH FOR A RIDGEPLOT
+mon_sum <- as.data.frame(info_df %>% group_by(mon, year, activity) %>% 
+        summarise(total_elevation_gain_ft = sum(total_elevation_gain_ft),
+                  moving_time_hour = sum(moving_time_hour),
+                  miles = sum(miles),
+                  num_activites = length(unique(start_date))))
+
+## FOR EVERY 5 MILES ON BIKE, EQUATE TO 1 MILE RUN
+mon_sum$adjusted_miles <- ifelse(mon_sum$activity == "Ride" | 
+                                         mon_sum$activity == "Peloton",
+                                 mon_sum$miles / 5, mon_sum$miles)
+
+## PROBABLY NOT THE MOST EFFICIENT WAY TO DO IT, BUT ADD IN 0s FOR 
+## WHERE THERE ARE NO ACTIVITIES
+mon_sum_fin <- data.frame()
+for(yr in 2014:2019){
+        for(mn in 1:12){
+                for(act in unique(mon_sum$activity)){
+                        if(dim(mon_sum[mon_sum$mon == mn & mon_sum$year == yr & 
+                                       mon_sum$activity == act, ])[1] > 0){
+                                tmp <- mon_sum[mon_sum$mon == mn & 
+                                                       mon_sum$year == yr & 
+                                                       mon_sum$activity == act, ]
+                        } else {
+                                tmp <- data.frame(mon = mn,
+                                                  year = yr,
+                                                  activity = act, 
+                                                  total_elevation_gain_ft = 0,
+                                                  moving_time_hour = 0,
+                                                  miles = 0, 
+                                                  num_activites = 0,
+                                                  adjusted_miles = 0)
+                        }
+                        
+                        mon_sum_fin <- rbind(mon_sum_fin, tmp)
+                }
+        }
+}
+
+## CONVERT THE DATE FOR VISUALIZATION
+mon_sum_fin$mon_year <- as.Date(strptime(paste(mon_sum_fin$year, 
+                                               mon_sum_fin$mon,
+                                               "01", sep = "-"), 
+                                         "%Y-%m-%d"))
+
+## GET RID OF THE ACTIVIES THAT HAVEN'T HAPPENED
+mon_sum_fin <- mon_sum_fin[mon_sum_fin$mon_year >= "2014-08-01" & 
+                                   mon_sum_fin$mon_year <= Sys.Date(), ]
+```
+
+### HOW FAR HAVE I GONE?
+
+Since `r format(min(info_df$start_date), "%B %d, %Y")`, I have - under my own power - traveled 
+`r round(sum(info_df$miles), 2)` miles. There were a few periods without much action 
+(a whole year from mid-2016 through later-2017), which is a bit sad. The last 
+few months have been good, though. 
+
+```{r overall_cumulative, echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%"}
+library(ggplot2)
+library(ggridges)
+library(RColorBrewer)
+
+ggplot(data = info_df, aes(x = start_date, y = total_sum)) +
+        geom_line() + 
+        ggtitle("Cumulative Miles on Strava") +
+        xlab("Year") +
+        ylab("Miles (cumulative)") +
+        theme(panel.background = element_blank(), 
+              panel.grid.major = element_line(color = "grey"),
+              legend.position = "right", legend.text = element_text(size = 8),
+              legend.key = element_rect(fill = 'white'),
+              axis.title = element_text(size = 10), axis.text = element_text(size = 10))
+```
+
+Here's a similar view, but split by activity. 
+
+* I've been running recently. 
+* I haven't really ridden my bike since the first 2 summers I had it. 
+* I rode the peloton when we first got it, but not since. 
+* I was a walker when I first tore the labrum in my hip in early 2018. 
+
+```{r by_activity, echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%"}
+ggplot(data = info_sum, aes(x = start_date, y = act_cum, color = activity)) +
+        geom_line() + 
+        ggtitle("Cumulative Miles by Activity on Strava") +
+        xlab("Year") +
+        ylab("Miles (cumulative)") +
+        theme(panel.background = element_blank(), 
+              panel.grid.major = element_line(color = "grey"),
+              legend.position = "right", legend.text = element_text(size = 8),
+              legend.key = element_rect(fill = 'white'),
+              axis.title = element_text(size = 10), axis.text = element_text(size = 10)) + 
+        scale_color_manual(name = "", 
+                           values = colorRampPalette(brewer.pal(name = "Blues", n = 8))(length(unique(info_sum$activity))))
+```
+
+Finally, here's the same data again, but split up in a 
+[ridgeplot](https://cran.r-project.org/web/packages/ggridges/vignettes/introduction.html).
+
+```{r ridgeplot, echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%"}
+ggplot(mon_sum_fin, aes(x = mon_year, y = activity, fill = activity, height = adjusted_miles)) +
+        geom_density_ridges(stat = "identity", scale = 0.9) +
+        theme_ridges() + 
+        theme(legend.position = "none") + 
+        scale_fill_brewer(palette = "Blues") + 
+        xlab("Year") + 
+        ylab("Activity")
+```
+
+### SUMMARY
+
+There's a TON of data that is returned by the Strava API. This blog just 
+scratches the surface of analysis that is possible - mostly I am just 
+introducing how to get the data and get up and running. 
+
+As a new year's resolution, I've committed to run 312 miles this year. That is 
+6 miles per week for 52 weeks (for those trying to wrap their head around the 
+weird number). Now that I've been able to pull this data, I'll have to set up 
+a tracker/dashboard for that data. More to come!

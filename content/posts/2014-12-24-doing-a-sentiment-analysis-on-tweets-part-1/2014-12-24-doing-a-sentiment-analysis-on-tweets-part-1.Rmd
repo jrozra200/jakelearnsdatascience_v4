@@ -1,0 +1,191 @@
+---
+title: Doing a Sentiment Analysis on Tweets (Part 1)
+author: Jacob Rozran
+date: '2014-12-24'
+slug: doing-a-sentiment-analysis-on-tweets-part-1
+categories:
+  - Data Engineering
+  - Data Analysis
+tags:
+  - data engineering
+  - data analysis
+  - R
+  - twitteR
+  - sentiment analysis
+---
+
+### INTRO
+
+So... This post is my first foray into the R 
+[twitteR](https://cran.r-project.org/web/packages/twitteR/index.html) package. 
+This post assumes that you have that package installed already in R. I show here 
+how to get tweets from Twitter in preparation for doing some sentiment analysis. 
+My next post will be the actual sentiment analysis.
+
+For this example, I am grabbing tweets related to "Comcast email." My goal of 
+this exercise is to see how people are feeling about the product I support.
+
+### STEP 1: GETTING AUTHENTICATED TO TWITTER
+
+First, you'll need to create an application at Twitter. I used 
+[this blog post](http://thinktostart.com/twitter-authentification-with-r/) to 
+get rolling with that. This post does a good job walking you through the steps 
+to do that.
+
+Once you have your app created, this is the code I used to create and save 
+my authentication credentials. Once you've done this once, you need only load 
+your credentials in the future to authenticate with Twitter.
+
+```{r twitteR_setup, eval = FALSE}
+library(twitteR) ## R package that does some of the Twitter API heavy lifting
+
+consumerKey <- "INSERT YOUR KEY HERE"
+consumerSecret <- "INSERT YOUR SECRET HERE"
+reqURL <- "https://api.twitter.com/oauth/request_token "
+accessURL <- "https://api.twitter.com/oauth/access_token "
+authURL <- "https://api.twitter.com/oauth/authorize "
+twitCred <- OAuthFactory$new(consumerKey = consumerKey,
+                             consumerSecret = consumerSecret,
+                             requestURL = reqURL,
+                             accessURL = accessURL,
+                             authURL = authURL)
+
+twitCred$handshake()
+
+save(cred, file="credentials.RData")
+```
+
+### STEP 2: GETTING THE TWEETS
+
+Once you have your authentication credentials set, you can use them to grab 
+tweets from Twitter.
+
+The next snippets of code come from my scraping_twitter.R script, which you are 
+welcome to see in it's entirety on [GitHub](https://github.com/jrozra200/scraping_twitter).
+
+``` {r logging_in, eval = FALSE}
+##Authentication
+load("credentials.RData") ##has my secret keys and shiz
+registerTwitterOAuth(twitCred) ##logs me in
+
+##Get the tweets about "comcast email" to work with
+tweetList <- searchTwitter("comcast email", n = 1000) 
+
+tweetList <- twListToDF(tweetList) ##converts that data we got into a data frame
+```
+
+As you can see, I used the twitteR R Package to authenticate and search Twitter. 
+After getting the tweets, I converted the results to a Data Frame to make it 
+easier to analyze the results.
+
+### STEP 3: GETTING RID OF THE JUNK
+
+Many of the tweets returned by my initial search are totally unrelated to Comcast 
+Email. An example of this would be: “I am selling something random… please **email** 
+me at myemailaddress@**comcast**.net”
+
+The tweet above includes the words email and comcast, but has nothing to actually 
+do with Comcast Email and the way the user feels about it, other than they use 
+it for their business.
+
+So… based on some initial, manual, analysis of the tweets, I’ve decided to pull 
+those tweets with the phrases:
+
+* “fix” AND “email” in them (in that order)
+* “Comcast” AND “email” in them in that order
+* “no email” in them
+* Any tweet that comes from a source with “comcast” in the handle
+* “Customer Service” AND “email” OR the reverse (“email” AND “Customer Service”) in them
+
+This is done with this code:
+
+```{r cleaning_up, eval = FALSE}
+##finds the rows that have the phrase "fix ... email" in them
+fixemail <- grep("(fix.*email)", tweetList$text)
+
+##finds the rows that have the phrase "comcast ... email" in them
+comcastemail <- grep("[Cc]omcast.*email", tweetList$text)
+
+##finds the rows that have the phrase "no email" in them
+noemail <- grep("no email", tweetList$text)
+
+##finds the rows that originated from a Comcast twitter handle
+comcasttweet <- grep("[Cc]omcast", tweetList$screenName)
+
+##finds the rows related to email and customer service
+custserv <- grep("[Cc]ustomer [Ss]ervice.*email|email.*[Cc]ustomer [Ss]ervice", 
+                 tweetList$text)
+```
+
+After pulling out the duplicates (some tweets may fall into multiple scenarios 
+from above) and ensuring they are in order (as returned initially), I assign the 
+relevant tweets to a new variable with only some of the returned columns.
+
+The returned columns are:
+
+* text
+* favorited
+* favoriteCount
+* replyToSN
+* created
+* truncated
+* replyToSID
+* id
+* replyToUID
+* statusSource
+* screenName
+* retweetCount
+* isRetweet
+* retweeted
+* longitude
+* latitude
+
+All I care about are:
+
+* text
+* created
+* statusSource
+* screenName
+
+This is handled through this tidbit of code:
+
+```{r more_cleaning, eval = FALSE}
+##combine all of the "good" tweets row numbers that we greped out above and 
+##then sorts them and makes sure they are unique
+combined <- c(fixemail, comcastemail, noemail, comcasttweet, custserv)
+uvals <- unique(combined)
+sorted <- sort(uvals)
+
+##pull the row numbers that we want, and with the columns that are important to 
+##us (tweet text, time of tweet, source, and username)
+paredTweetList <- tweetList[sorted, c(1, 5, 10, 11)]
+```
+
+### STEP 4: CLEAN UP THE DATA AND RETURN THE RESULTS
+
+Lastly, for this first script, I make the sources look nice, add titles, and 
+return the final list (only a sample set of tweets shown):
+
+```{r final_step, eval = FALSE}
+##make the device source look nicer
+paredTweetList$statusSource <- sub("<.*\">", "", paredTweetList$statusSource)
+paredTweetList$statusSource <- sub("</a>", "", paredTweetList$statusSource)
+
+##name the columns
+names(paredTweetList) <- c("Tweet", "Created", "Source", "ScreenName")
+
+paredTweetList
+```
+
+| Tweet | created | statusSource | screenName |
+| ------|---------|--------------|------------|
+| Dear Mark I am having problems login into my acct REDACTED@comcast.net I get no email w codes to reset my password for eddygil HELP HELP | 2014-12-23 15:44:27 | Twitter Web Client | riocauto |
+| @msnbc @nbc @comcast pay @thereval who incites the murder of police officers. Time to send them a message of BOYCOTT! Tweet/email them NOW | 2014-12-23 14:52:50 | Twitter Web Client | Monty_H_Mathis |
+| Comcast, I have no email. This is bad for my small business. Their response "Oh, I'm sorry for that". Problem not resolved. #comcast | 2014-12-23 09:20:14 | Twitter Web Client | mathercesul |
+
+### CHALLENGES OBSERVED
+
+As you can see from the output, sometimes some “junk” still gets in. Something 
+I’d like to continue working on is a more reliable algorithm for identifying 
+appropriate tweets. I also am worried that my choice of subjects is biasing 
+the sentiment.

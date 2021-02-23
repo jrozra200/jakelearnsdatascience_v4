@@ -1,0 +1,202 @@
+---
+title: Doing a Sentiment Analysis on Tweets (Part 1)
+author: Jacob Rozran
+date: '2014-12-24'
+slug: doing-a-sentiment-analysis-on-tweets-part-1
+categories:
+  - Data Engineering
+  - Data Analysis
+tags:
+  - data engineering
+  - data analysis
+  - R
+  - twitteR
+  - sentiment analysis
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="intro" class="section level3">
+<h3>INTRO</h3>
+<p>So… This post is my first foray into the R
+<a href="https://cran.r-project.org/web/packages/twitteR/index.html">twitteR</a> package.
+This post assumes that you have that package installed already in R. I show here
+how to get tweets from Twitter in preparation for doing some sentiment analysis.
+My next post will be the actual sentiment analysis.</p>
+<p>For this example, I am grabbing tweets related to “Comcast email.” My goal of
+this exercise is to see how people are feeling about the product I support.</p>
+</div>
+<div id="step-1-getting-authenticated-to-twitter" class="section level3">
+<h3>STEP 1: GETTING AUTHENTICATED TO TWITTER</h3>
+<p>First, you’ll need to create an application at Twitter. I used
+<a href="http://thinktostart.com/twitter-authentification-with-r/">this blog post</a> to
+get rolling with that. This post does a good job walking you through the steps
+to do that.</p>
+<p>Once you have your app created, this is the code I used to create and save
+my authentication credentials. Once you’ve done this once, you need only load
+your credentials in the future to authenticate with Twitter.</p>
+<pre class="r"><code>library(twitteR) ## R package that does some of the Twitter API heavy lifting
+
+consumerKey &lt;- &quot;INSERT YOUR KEY HERE&quot;
+consumerSecret &lt;- &quot;INSERT YOUR SECRET HERE&quot;
+reqURL &lt;- &quot;https://api.twitter.com/oauth/request_token &quot;
+accessURL &lt;- &quot;https://api.twitter.com/oauth/access_token &quot;
+authURL &lt;- &quot;https://api.twitter.com/oauth/authorize &quot;
+twitCred &lt;- OAuthFactory$new(consumerKey = consumerKey,
+                             consumerSecret = consumerSecret,
+                             requestURL = reqURL,
+                             accessURL = accessURL,
+                             authURL = authURL)
+
+twitCred$handshake()
+
+save(cred, file=&quot;credentials.RData&quot;)</code></pre>
+</div>
+<div id="step-2-getting-the-tweets" class="section level3">
+<h3>STEP 2: GETTING THE TWEETS</h3>
+<p>Once you have your authentication credentials set, you can use them to grab
+tweets from Twitter.</p>
+<p>The next snippets of code come from my scraping_twitter.R script, which you are
+welcome to see in it’s entirety on <a href="https://github.com/jrozra200/scraping_twitter">GitHub</a>.</p>
+<pre class="r"><code>##Authentication
+load(&quot;credentials.RData&quot;) ##has my secret keys and shiz
+registerTwitterOAuth(twitCred) ##logs me in
+
+##Get the tweets about &quot;comcast email&quot; to work with
+tweetList &lt;- searchTwitter(&quot;comcast email&quot;, n = 1000) 
+
+tweetList &lt;- twListToDF(tweetList) ##converts that data we got into a data frame</code></pre>
+<p>As you can see, I used the twitteR R Package to authenticate and search Twitter.
+After getting the tweets, I converted the results to a Data Frame to make it
+easier to analyze the results.</p>
+</div>
+<div id="step-3-getting-rid-of-the-junk" class="section level3">
+<h3>STEP 3: GETTING RID OF THE JUNK</h3>
+<p>Many of the tweets returned by my initial search are totally unrelated to Comcast
+Email. An example of this would be: “I am selling something random… please <strong>email</strong>
+me at myemailaddress@<strong>comcast</strong>.net”</p>
+<p>The tweet above includes the words email and comcast, but has nothing to actually
+do with Comcast Email and the way the user feels about it, other than they use
+it for their business.</p>
+<p>So… based on some initial, manual, analysis of the tweets, I’ve decided to pull
+those tweets with the phrases:</p>
+<ul>
+<li>“fix” AND “email” in them (in that order)</li>
+<li>“Comcast” AND “email” in them in that order</li>
+<li>“no email” in them</li>
+<li>Any tweet that comes from a source with “comcast” in the handle</li>
+<li>“Customer Service” AND “email” OR the reverse (“email” AND “Customer Service”) in them</li>
+</ul>
+<p>This is done with this code:</p>
+<pre class="r"><code>##finds the rows that have the phrase &quot;fix ... email&quot; in them
+fixemail &lt;- grep(&quot;(fix.*email)&quot;, tweetList$text)
+
+##finds the rows that have the phrase &quot;comcast ... email&quot; in them
+comcastemail &lt;- grep(&quot;[Cc]omcast.*email&quot;, tweetList$text)
+
+##finds the rows that have the phrase &quot;no email&quot; in them
+noemail &lt;- grep(&quot;no email&quot;, tweetList$text)
+
+##finds the rows that originated from a Comcast twitter handle
+comcasttweet &lt;- grep(&quot;[Cc]omcast&quot;, tweetList$screenName)
+
+##finds the rows related to email and customer service
+custserv &lt;- grep(&quot;[Cc]ustomer [Ss]ervice.*email|email.*[Cc]ustomer [Ss]ervice&quot;, 
+                 tweetList$text)</code></pre>
+<p>After pulling out the duplicates (some tweets may fall into multiple scenarios
+from above) and ensuring they are in order (as returned initially), I assign the
+relevant tweets to a new variable with only some of the returned columns.</p>
+<p>The returned columns are:</p>
+<ul>
+<li>text</li>
+<li>favorited</li>
+<li>favoriteCount</li>
+<li>replyToSN</li>
+<li>created</li>
+<li>truncated</li>
+<li>replyToSID</li>
+<li>id</li>
+<li>replyToUID</li>
+<li>statusSource</li>
+<li>screenName</li>
+<li>retweetCount</li>
+<li>isRetweet</li>
+<li>retweeted</li>
+<li>longitude</li>
+<li>latitude</li>
+</ul>
+<p>All I care about are:</p>
+<ul>
+<li>text</li>
+<li>created</li>
+<li>statusSource</li>
+<li>screenName</li>
+</ul>
+<p>This is handled through this tidbit of code:</p>
+<pre class="r"><code>##combine all of the &quot;good&quot; tweets row numbers that we greped out above and 
+##then sorts them and makes sure they are unique
+combined &lt;- c(fixemail, comcastemail, noemail, comcasttweet, custserv)
+uvals &lt;- unique(combined)
+sorted &lt;- sort(uvals)
+
+##pull the row numbers that we want, and with the columns that are important to 
+##us (tweet text, time of tweet, source, and username)
+paredTweetList &lt;- tweetList[sorted, c(1, 5, 10, 11)]</code></pre>
+</div>
+<div id="step-4-clean-up-the-data-and-return-the-results" class="section level3">
+<h3>STEP 4: CLEAN UP THE DATA AND RETURN THE RESULTS</h3>
+<p>Lastly, for this first script, I make the sources look nice, add titles, and
+return the final list (only a sample set of tweets shown):</p>
+<pre class="r"><code>##make the device source look nicer
+paredTweetList$statusSource &lt;- sub(&quot;&lt;.*\&quot;&gt;&quot;, &quot;&quot;, paredTweetList$statusSource)
+paredTweetList$statusSource &lt;- sub(&quot;&lt;/a&gt;&quot;, &quot;&quot;, paredTweetList$statusSource)
+
+##name the columns
+names(paredTweetList) &lt;- c(&quot;Tweet&quot;, &quot;Created&quot;, &quot;Source&quot;, &quot;ScreenName&quot;)
+
+paredTweetList</code></pre>
+<table>
+<colgroup>
+<col width="14%" />
+<col width="21%" />
+<col width="34%" />
+<col width="29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tweet</th>
+<th>created</th>
+<th>statusSource</th>
+<th>screenName</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Dear Mark I am having problems login into my acct <a href="mailto:REDACTED@comcast.net" class="email">REDACTED@comcast.net</a> I get no email w codes to reset my password for eddygil HELP HELP</td>
+<td>2014-12-23 15:44:27</td>
+<td>Twitter Web Client</td>
+<td>riocauto</td>
+</tr>
+<tr class="even">
+<td><span class="citation">@msnbc</span> <span class="citation">@nbc</span> <span class="citation">@comcast</span> pay <span class="citation">@thereval</span> who incites the murder of police officers. Time to send them a message of BOYCOTT! Tweet/email them NOW</td>
+<td>2014-12-23 14:52:50</td>
+<td>Twitter Web Client</td>
+<td>Monty_H_Mathis</td>
+</tr>
+<tr class="odd">
+<td>Comcast, I have no email. This is bad for my small business. Their response “Oh, I’m sorry for that”. Problem not resolved. #comcast</td>
+<td>2014-12-23 09:20:14</td>
+<td>Twitter Web Client</td>
+<td>mathercesul</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="challenges-observed" class="section level3">
+<h3>CHALLENGES OBSERVED</h3>
+<p>As you can see from the output, sometimes some “junk” still gets in. Something
+I’d like to continue working on is a more reliable algorithm for identifying
+appropriate tweets. I also am worried that my choice of subjects is biasing
+the sentiment.</p>
+</div>

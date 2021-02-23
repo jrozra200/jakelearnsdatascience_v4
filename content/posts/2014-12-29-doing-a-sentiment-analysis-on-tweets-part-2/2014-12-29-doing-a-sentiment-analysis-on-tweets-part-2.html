@@ -1,0 +1,381 @@
+---
+title: Doing a Sentiment Analysis on Tweets (Part 2)
+author: Jacob Rozran
+date: '2014-12-29'
+slug: doing-a-sentiment-analysis-on-tweets-part-2
+categories:
+  - Data Engineering
+  - Data Analysis
+tags:
+  - data engineering
+  - data analysis
+  - R
+  - twitteR
+  - sentiment analysis
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="intro" class="section level3">
+<h3>INTRO</h3>
+<p>This is post is a continuation of
+<a href="https://www.jakelearnsdatascience.com/posts/doing-a-sentiment-analysis-on-tweets-part-1/">my last post</a>.
+There I pulled tweets from Twitter related to “Comcast email,” got rid of the junk,
+and removed the unnecessary/unwanted data.</p>
+<p>Now that I have the tweets, I will further clean the text and subject it to two
+different analyses: emotion and polarity.</p>
+</div>
+<div id="why-does-this-matter" class="section level3">
+<h3>WHY DOES THIS MATTER</h3>
+<p>Before I get started, I thought it might be a good idea to talk about WHY I am
+doing this (besides the fact that I learned a new skill and want to show it off
+and get feedback). This yet incomplete project was devised for two reasons:</p>
+<ol style="list-style-type: decimal">
+<li>Understand the overall customer sentiment about the product I support</li>
+<li>Create an early warning system to help identify when things are going wrong on
+the platform</li>
+</ol>
+<p>Keeping the customer voice at the forefront of everything we do is tantamount to
+providing the best experience for the users of our platform. Identifying trends
+in sentiment and emotion can help inform the team in many ways, including seeing
+the reaction to new features/releases (i.e. – seeing a rise in comments about a
+specific addition from a release) and identifying needed changes to current
+functionality (i.e. – users who continually comment about a specific behavior of
+the application) and improvements to user experience (i.e. – trends in comments
+about being unable to find a certain feature on the site). Secondarily, this
+analysis can act as an early warning system when there are issues with the
+platform (i.e. – a sudden spike in comments about the usability of a mobile
+device).</p>
+<p>Now that I’ve explained why I am doing this (which I probably should have done
+in this sort of detail the first post), let’s get into how it is actually done…</p>
+</div>
+<div id="step-one-stripping-the-text-for-analysis" class="section level3">
+<h3>STEP ONE: STRIPPING THE TEXT FOR ANALYSIS</h3>
+<p>There are a number of things included in tweets that dont matter for the analysis.
+Things like twitter handles, URLs, punctuation… they are not necessary to do the
+analysis (in fact, they may well confound it). This bit of code handles that
+cleanup.</p>
+<p>For those following the scripts on GitHub, this is part of my
+<a href="https://github.com/jrozra200/scraping_twitter/blob/master/tweet_clean.R">tweet_clean.R script</a>.
+Also, to give credit where it is due: I’ve borrowed and tweaked the code from
+<a href="http://andybromberg.com/sentiment-analysis/">Andy Bromberg’s blog</a> to do this task.</p>
+<pre class="r"><code>library(stringr) ##Does some of the text editing
+
+##Cleaning up the data some more (just the text now) First grabbing only the text
+text &lt;- paredTweetList$Tweet
+
+# remove retweet entities
+text &lt;- gsub(&quot;(RT|via)((?:\\b\\W*@\\w+)+)&quot;, &quot;&quot;, text)
+# remove at people
+text &lt;- gsub(&quot;@\\w+&quot;, &quot;&quot;, text)
+# remove punctuation
+text &lt;- gsub(&quot;[[:punct:]]&quot;, &quot;&quot;, text)
+# remove numbers
+text &lt;- gsub(&quot;[[:digit:]]&quot;, &quot;&quot;, text)
+# remove html links
+text &lt;- gsub(&quot;http\\w+&quot;, &quot;&quot;, text)
+
+# define &quot;tolower error handling&quot; function
+try.error &lt;- function(x) {
+# create missing value
+y &lt;- NA
+# tryCatch error
+try_error &lt;- tryCatch(tolower(x), error=function(e) e)
+# if not an error
+if (!inherits(try_error, &quot;error&quot;))
+y &lt;- tolower(x)
+# result
+return(y)
+}
+# lower case using try.error with sapply
+text &lt;- sapply(text, try.error)
+
+# remove NAs in text
+text &lt;- text[!is.na(text)]
+# remove column names
+names(text) &lt;- NULL</code></pre>
+</div>
+<div id="step-two-classifying-the-emotion-for-each-tweet" class="section level3">
+<h3>STEP TWO: CLASSIFYING THE EMOTION FOR EACH TWEET</h3>
+<p>So now the text is just that: only text. The punctuation, links, handles, etc.
+have been removed. Now it is time to estimate the emotion of each tweet.</p>
+<p>Through some research, I found that there are many posts/sites on Sentiment
+Analysis/Emotion Classification that use the
+<a href="https://cran.r-project.org/web/packages/sentiment/index.html">“Sentiment” package in R</a>.
+I thought: “Oh great – a package tailor made to solve the problem for which I
+want an answer.” The problem is that this package has been deprecated and removed
+from the CRAN library.</p>
+<p>To get around this, I downloaded the archived package and pulled the code for
+doing the emotion classification. With some minor tweaks, I was able to get it
+going. This can be seen in its entirety in the
+<a href="https://github.com/jrozra200/scraping_twitter/blob/master/classify_emotion.R">classify_emotion.R script</a>.
+You can also see the “made for the internet” version here:</p>
+<pre class="r"><code>library(RTextTools)
+library(tm)
+algorithm &lt;- &quot;bayes&quot;
+prior &lt;- 1.0
+verbose &lt;- FALSE
+matrix &lt;- create_matrix(text)
+lexicon &lt;- read.csv(&quot;./data/emotions.csv.gz&quot;,header=FALSE)
+
+counts &lt;- list(anger=length(which(lexicon[,2]==&quot;anger&quot;)), 
+               disgust=length(which(lexicon[,2]==&quot;disgust&quot;)), 
+               fear=length(which(lexicon[,2]==&quot;fear&quot;)), 
+               joy=length(which(lexicon[,2]==&quot;joy&quot;)), 
+               sadness=length(which(lexicon[,2]==&quot;sadness&quot;)), 
+               surprise=length(which(lexicon[,2]==&quot;surprise&quot;)), 
+               total=nrow(lexicon))
+documents &lt;- c()
+
+for (i in 1:nrow(matrix)) {
+        if (verbose) print(paste(&quot;DOCUMENT&quot;,i))
+        scores &lt;- list(anger=0,disgust=0,fear=0,joy=0,sadness=0,surprise=0)
+        doc &lt;- matrix[i,]
+        words &lt;- findFreqTerms(doc,lowfreq=1)
+
+        for (word in words) {
+                for (key in names(scores)) {
+                        emotions &lt;- lexicon[which(lexicon[,2]==key),]
+                        index 0) {
+                                entry &lt;- emotions[index,]
+                                
+                                category &lt;- as.character(entry[[2]]])
+                                count &lt;- counts[[category]]
+
+                                score &lt;- 1.0
+                                if (algorithm==&quot;bayes&quot;) score &lt;- abs(log(score*prior/count))
+                                if (verbose) {
+                                        print(paste(&quot;WORD:&quot;,word,&quot;CAT:&quot;,
+                                                    category,&quot;SCORE:&quot;,score))
+                                        }
+                                
+                                scores[[category]] &lt;- scores[[category]]+score
+                                }
+                        }
+                }
+        
+        if (algorithm==&quot;bayes&quot;) {
+                for (key in names(scores)) {
+                        count &lt;- counts[[key]]
+                        total &lt;- counts[[&quot;total&quot;]]
+                        score &lt;- abs(log(count/total))
+                        scores[[key]] &lt;- scores[[key]]+score
+                        }
+                } else {
+                        for (key in names(scores)) {
+                                scores[[key]] &lt;- scores[[key]]+0.000001
+                                }
+                        }
+        
+        best_fit &lt;- names(scores)[which.max(unlist(scores))]
+        if (best_fit == &quot;disgust&quot; &amp;&amp; as.numeric(unlist(scores[2]))-3.09234 &lt; .01) best_fit &lt;- NA
+        documents &lt;- rbind(documents, c(scores$anger, 
+                                        scores$disgust, 
+                                        scores$fear, 
+                                        scores$joy, 
+                                        scores$sadness, 
+                                        scores$surprise, 
+                                        best_fit))
+        }
+
+colnames(documents) &lt;- c(&quot;ANGER&quot;, &quot;DISGUST&quot;, &quot;FEAR&quot;, &quot;JOY&quot;, 
+                         &quot;SADNESS&quot;, &quot;SURPRISE&quot;, &quot;BEST_FIT&quot;)</code></pre>
+<p>Here is a sample output from this code:</p>
+<table>
+<colgroup>
+<col width="12%" />
+<col width="16%" />
+<col width="10%" />
+<col width="8%" />
+<col width="16%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>ANGER</th>
+<th>DISGUST</th>
+<th>FEAR</th>
+<th>JOY</th>
+<th>SADNESS</th>
+<th>SURPRISE</th>
+<th>BEST_FIT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>“1.46871776464786”</td>
+<td>“3.09234031207392”</td>
+<td>“2.06783599555953”</td>
+<td>“1.02547755260094”</td>
+<td>“7.34083555412328”</td>
+<td>“7.34083555412327”</td>
+<td>“sadness”</td>
+</tr>
+<tr class="even">
+<td>“7.34083555412328”</td>
+<td>“3.09234031207392”</td>
+<td>“2.06783599555953”</td>
+<td>“1.02547755260094”</td>
+<td>“1.7277074477352”</td>
+<td>“2.78695866252273”</td>
+<td>“anger”</td>
+</tr>
+<tr class="odd">
+<td>“1.46871776464786”</td>
+<td>“3.09234031207392”</td>
+<td>“2.06783599555953”</td>
+<td>“1.02547755260094”</td>
+<td>“7.34083555412328”</td>
+<td>“7.34083555412328”</td>
+<td>“sadness”</td>
+</tr>
+</tbody>
+</table>
+<p>Here you can see that the initial author is using naive Bayes (which honestly I
+don’t yet understand) to analyze the text. I wanted to show a quick snipet of
+how the analysis is being done “under the hood.”</p>
+<p>For my purposes though, I only care about the emotion outputted and the tweet
+it is analyzed from.</p>
+<pre class="r"><code>emotion &lt;- documents[, &quot;BEST_FIT&quot;]`</code></pre>
+<p>This variable, emotion, is returned by the classify_emotion.R script.</p>
+<div id="challenges-observed" class="section level4">
+<h4>CHALLENGES OBSERVED</h4>
+<p>In addition to not fully understanding the code, the emotion classification
+seems to only work OK (which is pretty much expected… this is a canned analysis
+that hasn’t been tailored to my analysis at all). I’d like to come back to this
+one day to see if I can do a better job analyzing the emotions of the tweets.</p>
+</div>
+</div>
+<div id="step-three-classifying-the-polarity-of-each-tweet" class="section level3">
+<h3>STEP THREE: CLASSIFYING THE POLARITY OF EACH TWEET</h3>
+<p>Similarly to what we saw in step 5, I will use the cleaned text to analyze the
+polarity of each tweet.</p>
+<p>This code is also from the old R Packaged titled “Sentiment.” As with above, I
+was able to get the code working with only some minor tweaks. This can be seen
+in its entirety in the
+<a href="https://github.com/jrozra200/scraping_twitter/blob/master/classify_polarity.R">classify_polarity.R script</a>.
+Here it is, too:</p>
+<pre class="r"><code>algorithm &lt;- &quot;bayes&quot;
+pstrong &lt;- 0.5
+pweak &lt;- 1.0
+prior &lt;- 1.0
+verbose &lt;- FALSE
+matrix &lt;- create_matrix(text)
+lexicon &lt;- read.csv(&quot;./data/subjectivity.csv.gz&quot;,header=FALSE)
+counts &lt;- list(positive=length(which(lexicon[,3]==&quot;positive&quot;)),
+               negative=length(which(lexicon[,3]==&quot;negative&quot;)), 
+               total=nrow(lexicon))
+documents &lt;- c()
+
+for (i in 1:nrow(matrix)) {
+        if (verbose) print(paste(&quot;DOCUMENT&quot;,i))
+        scores &lt;- list(positive=0,negative=0)
+        doc &lt;- matrix[i,]
+        words &lt;- findFreqTerms(doc, lowfreq=1)
+        
+        for (word in words) {
+                index 0) {
+                        entry &lt;- lexicon[index,]
+                        
+                        polarity &lt;- as.character(entry[[2]])
+                        category &lt;- as.character(entry[[3]])
+                        count &lt;- counts[[category]]
+                        
+                        score &lt;- pweak
+                        if (polarity == &quot;strongsubj&quot;) score &lt;- pstrong
+                        if (algorithm==&quot;bayes&quot;) score &lt;- abs(log(score*prior/count))
+                        
+                        if (verbose) {
+                                print(paste(&quot;WORD:&quot;, word, &quot;CAT:&quot;, 
+                                            category, &quot;POL:&quot;, polarity, 
+                                            &quot;SCORE:&quot;, score))
+                                }
+                        
+                        scores[[category]] &lt;- scores[[category]]+score
+                }
+        }
+        
+        if (algorithm==&quot;bayes&quot;) {
+                for (key in names(scores)) {
+                        count &lt;- counts[[key]]
+                        total &lt;- counts[[&quot;total&quot;]]
+                        score &lt;- abs(log(count/total))
+                        scores[[key]] &lt;- scores[[key]]+score
+                        }
+                } else {
+                        for (key in names(scores)) {
+                                scores[[key]] &lt;- scores[[key]]+0.000001
+                        }
+                }
+        
+        best_fit &lt;- names(scores)[which.max(unlist(scores))]
+        ratio &lt;- as.integer(abs(scores$positive/scores$negative))
+        if (ratio==1) best_fit &lt;- &quot;neutral&quot;
+        documents &lt;- rbind(documents,c(scores$positive, 
+                                       scores$negative, 
+                                       abs(scores$positive/scores$negative), 
+                                       best_fit))
+        
+        if (verbose) {
+                print(paste(&quot;POS:&quot;, scores$positive,&quot;NEG:&quot;, 
+                            scores$negative, &quot;RATIO:&quot;, 
+                            abs(scores$positive/scores$negative)))
+                cat(&quot;\n&quot;)
+                }
+        }
+
+colnames(documents) &lt;- c(&quot;POS&quot;,&quot;NEG&quot;,&quot;POS/NEG&quot;,&quot;BEST_FIT&quot;)</code></pre>
+<p>Here is a sample output from this code:</p>
+<table>
+<thead>
+<tr class="header">
+<th>POS</th>
+<th>NEG</th>
+<th>POS/NEG</th>
+<th>BEST_FIT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>“1.03127774142571”</td>
+<td>“0.445453222112551”</td>
+<td>“2.31512017476245”</td>
+<td>“positive”</td>
+</tr>
+<tr class="even">
+<td>“1.03127774142571”</td>
+<td>“26.1492093145274”</td>
+<td>“0.0394381997949273”</td>
+<td>“negative”</td>
+</tr>
+<tr class="odd">
+<td>“17.9196623384892”</td>
+<td>“17.8123396772424”</td>
+<td>“1.00602518608961”</td>
+<td>“neutral”</td>
+</tr>
+</tbody>
+</table>
+<p>Again, I just wanted to show a quick snipet of how the analysis is being done
+“under the hood.”</p>
+<p>I only care about the polarity outputted and the tweet it is analyzed from.</p>
+<pre class="r"><code>polarity &lt;- documents[, &quot;BEST_FIT&quot;]</code></pre>
+<p>This variable, polarity, is returned by the classify_polarity.R script.</p>
+<div id="challenges-observed-1" class="section level4">
+<h4>CHALLENGES OBSERVED</h4>
+<p>As with above, this is a stock analysis and hasn’t been tweaked for my needs.
+The analysis does OK, but I want to come back to this again one day to see if
+I can do better.</p>
+</div>
+</div>
+<div id="quick-conclusion" class="section level3">
+<h3>QUICK CONCLUSION</h3>
+<p>So… Now I have the emotion and polarity for each tweet. This can be useful to
+see on its own, but I think is more worthwhile in aggregate. In my next post,
+I’ll show that.</p>
+<p>Also in the next post- I’ll also show an analysis of the word count with a
+wordcloud… This gets into the secondary point of this analysis. Hypothetically,
+I’d like to see common issues bubbled up through the wordcloud.</p>
+</div>

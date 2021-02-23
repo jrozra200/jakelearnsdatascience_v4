@@ -1,0 +1,139 @@
+baseURL = "https://www.jakelearnsdatascience.com/"
+title = "jake learns data science"
+
+theme = "hugo-coder"
+
+languageCode = "en"
+defaultContentLanguage = "en"
+
+paginate = 20
+
+pygmentsStyle = "b2"
+pygmentsCodeFences = true
+pygmentsCodeFencesGuessSyntax = true
+
+#disqusShortname = "yourdiscussshortname"
+
+[params]
+    author = "Jake Rozran"
+    description = "Jake Learns Data Science"
+    keywords = "data,data science,data analytics,blog"
+    info = "Data Guy, Dad, & Uncle"
+    avatarURL = "images/jakes_pic.jpg"
+    #gravatar = "john.doe@example.com"
+    footerContent = "It is a capital mistake to theorize before one has data. -Sir Arthur Conan Doyle, Sherlock Holmes"
+
+    dateFormat = "January 2, 2006"
+
+    hideFooter = false
+    hideCredits = true
+    hideCopyright = false
+    since = 2014
+    
+    math = true
+    
+    favicon_32 = "/images/favicon.svg"
+    favicon_16 = "/images/favicon.svg"
+
+    # Git Commit in Footer, uncomment the line below to enable it.
+    commit = "https://github.com/luizdepra/hugo-coder/tree/"
+
+    rtl = false
+
+    # Specify light/dark colorscheme
+    # Supported values:
+    # "auto" (use preference set by browser)
+    # "dark" (dark background, light foreground)
+    # "light" (light background, dark foreground) (default)
+    colorScheme = "auto"
+
+    # Hide the toggle button, along with the associated vertical divider
+    hideColorSchemeToggle = false
+
+    # Series see also post count
+    maxSeeAlsoItems = 5
+
+    # Enable Twemoji
+    enableTwemoji = true
+
+    # Custom CSS
+    customCSS = []
+
+    # Custom SCSS
+    customSCSS = []
+
+    # Custom JS
+    customJS = []
+
+# If you want to use Google Tag Manager(https://analytics.google.com/) for analytics, add this section
+[params.googleTagManager]
+    id = "UA-74033249-1"
+
+[taxonomies]
+  category = "categories"
+  series = "series"
+  tag = "tags"
+  author = "authors"
+
+[[params.social]]
+    name = "Email"
+    icon = "fa fa-paper-plane"
+    weight = 1
+    url = "mailto:jacob.rozran@gmail.com"
+[[params.social]]
+    name = "LinkedIn"
+    icon = "fa fa-linkedin"
+    weight = 2
+    url = "https://www.linkedin.com/in/jacob-rozran/"
+[[params.social]]
+    name = "Twitter"
+    icon = "fa fa-twitter"
+    weight = 3
+    url = "https://twitter.com/StatsManPHL/"
+[[params.social]]
+    name = "Github"
+    icon = "fa fa-github"
+    weight = 4
+    url = "https://github.com/jrozra200/"
+[[params.social]]
+    name = "Tableau"
+    icon = "fa fa-area-chart"
+    weight = 5
+    url = "https://github.com/jrozra200/"
+[[params.social]]
+    name = "Plotly"
+    icon = "fa fa-bar-chart"
+    weight = 6
+    url = "https://github.com/jrozra200/"
+[[params.social]]
+    name = "flickr"
+    icon = "fa fa-flickr"
+    weight = 7
+    url = "https://github.com/jrozra200/"
+
+
+[languages]
+    [languages.en]
+        languageName = "English"
+
+        [languages.en.menu]
+
+            [[languages.en.menu.main]]
+            name = "About"
+            weight = 1
+            url = "about/"
+
+            [[languages.en.menu.main]]
+            name = "Posts"
+            weight = 2
+            url = "posts/"
+
+            [[languages.en.menu.main]]
+            name = "Projects"
+            weight = 3
+            url = "projects/"
+            
+            [[languages.en.menu.main]]
+            name = "Resume"
+            weight = 4
+            url = "resume/"

@@ -1,0 +1,338 @@
+---
+title: Doing a Sentiment Analysis on Tweets (Part 2)
+author: Jacob Rozran
+date: '2014-12-29'
+slug: doing-a-sentiment-analysis-on-tweets-part-2
+categories:
+  - Data Engineering
+  - Data Analysis
+tags:
+  - data engineering
+  - data analysis
+  - R
+  - twitteR
+  - sentiment analysis
+---
+
+### INTRO
+
+This is post is a continuation of 
+[my last post](https://www.jakelearnsdatascience.com/posts/doing-a-sentiment-analysis-on-tweets-part-1/). 
+There I pulled tweets from Twitter related to “Comcast email,” got rid of the junk, 
+and removed the unnecessary/unwanted data.
+
+Now that I have the tweets, I will further clean the text and subject it to two 
+different analyses: emotion and polarity.
+
+### WHY DOES THIS MATTER
+
+Before I get started, I thought it might be a good idea to talk about WHY I am 
+doing this (besides the fact that I learned a new skill and want to show it off 
+and get feedback). This yet incomplete project was devised for two reasons:
+
+1. Understand the overall customer sentiment about the product I support
+2. Create an early warning system to help identify when things are going wrong on 
+the platform
+
+Keeping the customer voice at the forefront of everything we do is tantamount to 
+providing the best experience for the users of our platform. Identifying trends 
+in sentiment and emotion can help inform the team in many ways, including seeing 
+the reaction to new features/releases (i.e. – seeing a rise in comments about a 
+specific addition from a release) and identifying needed changes to current 
+functionality (i.e. – users who continually comment about a specific behavior of 
+the application) and improvements to user experience (i.e. – trends in comments 
+about being unable to find a certain feature on the site). Secondarily, this 
+analysis can act as an early warning system when there are issues with the 
+platform (i.e. – a sudden spike in comments about the usability of a mobile 
+device).
+
+Now that I’ve explained why I am doing this (which I probably should have done 
+in this sort of detail the first post), let’s get into how it is actually done…
+
+### STEP ONE: STRIPPING THE TEXT FOR ANALYSIS
+
+There are a number of things included in tweets that dont matter for the analysis. 
+Things like twitter handles, URLs, punctuation… they are not necessary to do the 
+analysis (in fact, they may well confound it). This bit of code handles that 
+cleanup.
+
+For those following the scripts on GitHub, this is part of my 
+[tweet_clean.R script](https://github.com/jrozra200/scraping_twitter/blob/master/tweet_clean.R). 
+Also, to give credit where it is due: I’ve borrowed and tweaked the code from 
+[Andy Bromberg’s blog](http://andybromberg.com/sentiment-analysis/) to do this task.
+
+```{r tweet_clean, eval = FALSE}
+library(stringr) ##Does some of the text editing
+
+##Cleaning up the data some more (just the text now) First grabbing only the text
+text <- paredTweetList$Tweet
+
+# remove retweet entities
+text <- gsub("(RT|via)((?:\\b\\W*@\\w+)+)", "", text)
+# remove at people
+text <- gsub("@\\w+", "", text)
+# remove punctuation
+text <- gsub("[[:punct:]]", "", text)
+# remove numbers
+text <- gsub("[[:digit:]]", "", text)
+# remove html links
+text <- gsub("http\\w+", "", text)
+
+# define "tolower error handling" function
+try.error <- function(x) {
+# create missing value
+y <- NA
+# tryCatch error
+try_error <- tryCatch(tolower(x), error=function(e) e)
+# if not an error
+if (!inherits(try_error, "error"))
+y <- tolower(x)
+# result
+return(y)
+}
+# lower case using try.error with sapply
+text <- sapply(text, try.error)
+
+# remove NAs in text
+text <- text[!is.na(text)]
+# remove column names
+names(text) <- NULL
+```
+
+### STEP TWO: CLASSIFYING THE EMOTION FOR EACH TWEET
+
+So now the text is just that: only text. The punctuation, links, handles, etc. 
+have been removed. Now it is time to estimate the emotion of each tweet.
+
+Through some research, I found that there are many posts/sites on Sentiment 
+Analysis/Emotion Classification that use the 
+[“Sentiment” package in R](https://cran.r-project.org/web/packages/sentiment/index.html). 
+I thought: “Oh great – a package tailor made to solve the problem for which I 
+want an answer.” The problem is that this package has been deprecated and removed 
+from the CRAN library.
+
+To get around this, I downloaded the archived package and pulled the code for 
+doing the emotion classification. With some minor tweaks, I was able to get it 
+going. This can be seen in its entirety in the 
+[classify_emotion.R script](https://github.com/jrozra200/scraping_twitter/blob/master/classify_emotion.R).
+ You can also see the “made for the internet” version here:
+ 
+``` {r classify_emotion, eval = FALSE}
+library(RTextTools)
+library(tm)
+algorithm <- "bayes"
+prior <- 1.0
+verbose <- FALSE
+matrix <- create_matrix(text)
+lexicon <- read.csv("./data/emotions.csv.gz",header=FALSE)
+
+counts <- list(anger=length(which(lexicon[,2]=="anger")), 
+               disgust=length(which(lexicon[,2]=="disgust")), 
+               fear=length(which(lexicon[,2]=="fear")), 
+               joy=length(which(lexicon[,2]=="joy")), 
+               sadness=length(which(lexicon[,2]=="sadness")), 
+               surprise=length(which(lexicon[,2]=="surprise")), 
+               total=nrow(lexicon))
+documents <- c()
+
+for (i in 1:nrow(matrix)) {
+        if (verbose) print(paste("DOCUMENT",i))
+        scores <- list(anger=0,disgust=0,fear=0,joy=0,sadness=0,surprise=0)
+        doc <- matrix[i,]
+        words <- findFreqTerms(doc,lowfreq=1)
+
+        for (word in words) {
+                for (key in names(scores)) {
+                        emotions <- lexicon[which(lexicon[,2]==key),]
+                        index 0) {
+                                entry <- emotions[index,]
+                                
+                                category <- as.character(entry[[2]]])
+                                count <- counts[[category]]
+
+                                score <- 1.0
+                                if (algorithm=="bayes") score <- abs(log(score*prior/count))
+                                if (verbose) {
+                                        print(paste("WORD:",word,"CAT:",
+                                                    category,"SCORE:",score))
+                                        }
+                                
+                                scores[[category]] <- scores[[category]]+score
+                                }
+                        }
+                }
+        
+        if (algorithm=="bayes") {
+                for (key in names(scores)) {
+                        count <- counts[[key]]
+                        total <- counts[["total"]]
+                        score <- abs(log(count/total))
+                        scores[[key]] <- scores[[key]]+score
+                        }
+                } else {
+                        for (key in names(scores)) {
+                                scores[[key]] <- scores[[key]]+0.000001
+                                }
+                        }
+        
+        best_fit <- names(scores)[which.max(unlist(scores))]
+        if (best_fit == "disgust" && as.numeric(unlist(scores[2]))-3.09234 < .01) best_fit <- NA
+        documents <- rbind(documents, c(scores$anger, 
+                                        scores$disgust, 
+                                        scores$fear, 
+                                        scores$joy, 
+                                        scores$sadness, 
+                                        scores$surprise, 
+                                        best_fit))
+        }
+
+colnames(documents) <- c("ANGER", "DISGUST", "FEAR", "JOY", 
+                         "SADNESS", "SURPRISE", "BEST_FIT")
+```
+
+Here is a sample output from this code:
+
+| ANGER | DISGUST | FEAR | JOY | SADNESS | SURPRISE | BEST_FIT |
+|-------|---------|------|-----|---------|----------|----------|
+| “1.46871776464786” | “3.09234031207392” | “2.06783599555953” | “1.02547755260094” | “7.34083555412328” | “7.34083555412327” | “sadness” |
+| “7.34083555412328” | “3.09234031207392” | “2.06783599555953” | “1.02547755260094” | “1.7277074477352” | “2.78695866252273” | “anger” |
+| “1.46871776464786” | “3.09234031207392” | “2.06783599555953” | “1.02547755260094” | “7.34083555412328” | “7.34083555412328” | “sadness” |
+
+Here you can see that the initial author is using naive Bayes (which honestly I 
+don’t yet understand) to analyze the text. I wanted to show a quick snipet of 
+how the analysis is being done “under the hood.”
+
+For my purposes though, I only care about the emotion outputted and the tweet 
+it is analyzed from.
+
+```{r snippet, eval = FALSE}
+emotion <- documents[, "BEST_FIT"]`
+```
+
+This variable, emotion, is returned by the classify_emotion.R script.
+
+#### CHALLENGES OBSERVED
+
+In addition to not fully understanding the code, the emotion classification 
+seems to only work OK (which is pretty much expected… this is a canned analysis 
+that hasn’t been tailored to my analysis at all). I’d like to come back to this 
+one day to see if I can do a better job analyzing the emotions of the tweets.
+
+### STEP THREE: CLASSIFYING THE POLARITY OF EACH TWEET
+
+Similarly to what we saw in step 5, I will use the cleaned text to analyze the 
+polarity of each tweet.
+
+This code is also from the old R Packaged titled “Sentiment.” As with above, I 
+was able to get the code working with only some minor tweaks. This can be seen 
+in its entirety in the 
+[classify_polarity.R script](https://github.com/jrozra200/scraping_twitter/blob/master/classify_polarity.R). 
+Here it is, too:
+
+```{r classify_polarity, eval = FALSE}
+algorithm <- "bayes"
+pstrong <- 0.5
+pweak <- 1.0
+prior <- 1.0
+verbose <- FALSE
+matrix <- create_matrix(text)
+lexicon <- read.csv("./data/subjectivity.csv.gz",header=FALSE)
+counts <- list(positive=length(which(lexicon[,3]=="positive")),
+               negative=length(which(lexicon[,3]=="negative")), 
+               total=nrow(lexicon))
+documents <- c()
+
+for (i in 1:nrow(matrix)) {
+        if (verbose) print(paste("DOCUMENT",i))
+        scores <- list(positive=0,negative=0)
+        doc <- matrix[i,]
+        words <- findFreqTerms(doc, lowfreq=1)
+        
+        for (word in words) {
+                index 0) {
+                        entry <- lexicon[index,]
+                        
+                        polarity <- as.character(entry[[2]])
+                        category <- as.character(entry[[3]])
+                        count <- counts[[category]]
+                        
+                        score <- pweak
+                        if (polarity == "strongsubj") score <- pstrong
+                        if (algorithm=="bayes") score <- abs(log(score*prior/count))
+                        
+                        if (verbose) {
+                                print(paste("WORD:", word, "CAT:", 
+                                            category, "POL:", polarity, 
+                                            "SCORE:", score))
+                                }
+                        
+                        scores[[category]] <- scores[[category]]+score
+                }
+        }
+        
+        if (algorithm=="bayes") {
+                for (key in names(scores)) {
+                        count <- counts[[key]]
+                        total <- counts[["total"]]
+                        score <- abs(log(count/total))
+                        scores[[key]] <- scores[[key]]+score
+                        }
+                } else {
+                        for (key in names(scores)) {
+                                scores[[key]] <- scores[[key]]+0.000001
+                        }
+                }
+        
+        best_fit <- names(scores)[which.max(unlist(scores))]
+        ratio <- as.integer(abs(scores$positive/scores$negative))
+        if (ratio==1) best_fit <- "neutral"
+        documents <- rbind(documents,c(scores$positive, 
+                                       scores$negative, 
+                                       abs(scores$positive/scores$negative), 
+                                       best_fit))
+        
+        if (verbose) {
+                print(paste("POS:", scores$positive,"NEG:", 
+                            scores$negative, "RATIO:", 
+                            abs(scores$positive/scores$negative)))
+                cat("\n")
+                }
+        }
+
+colnames(documents) <- c("POS","NEG","POS/NEG","BEST_FIT")
+```
+
+Here is a sample output from this code:
+
+| POS | NEG | POS/NEG | BEST_FIT |
+|-----|-----|---------|----------|
+| “1.03127774142571” | “0.445453222112551” | “2.31512017476245” | “positive” |
+| “1.03127774142571” | “26.1492093145274” | “0.0394381997949273” | “negative” |
+| “17.9196623384892” | “17.8123396772424” | “1.00602518608961” | “neutral” |
+
+Again, I just wanted to show a quick snipet of how the analysis is being done 
+“under the hood.”
+
+I only care about the polarity outputted and the tweet it is analyzed from.
+
+```{r snippet_two, eval = FALSE}
+polarity <- documents[, "BEST_FIT"]
+```
+
+This variable, polarity, is returned by the classify_polarity.R script.
+
+#### CHALLENGES OBSERVED
+
+As with above, this is a stock analysis and hasn’t been tweaked for my needs. 
+The analysis does OK, but I want to come back to this again one day to see if 
+I can do better.
+
+### QUICK CONCLUSION
+
+So… Now I have the emotion and polarity for each tweet. This can be useful to 
+see on its own, but I think is more worthwhile in aggregate. In my next post, 
+I’ll show that.
+
+Also in the next post- I’ll also show an analysis of the word count with a 
+wordcloud… This gets into the secondary point of this analysis. Hypothetically, 
+I’d like to see common issues bubbled up through the wordcloud.

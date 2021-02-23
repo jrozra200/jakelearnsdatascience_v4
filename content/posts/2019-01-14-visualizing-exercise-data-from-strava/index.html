@@ -1,0 +1,129 @@
+---
+title: Visualizing Exercise Data from Strava
+author: Jacob Rozran
+date: '2019-01-14'
+slug: visualizing-exercise-data-from-strava
+summaryImage: 'ridgeplot-1.png'
+categories:
+  - Data Visualization
+  - Data Engineering
+tags:
+  - data visualization
+  - data engineering
+  - R
+  - ggplot
+  - rStrava
+  - Strava
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level3">
+<h3>INTRODUCTION</h3>
+<p>My wife introduced me to cycling in 2014 - I fell in love with it and went all
+in. That first summer after buying my bike, I rode over 500 miles (more on that
+below). My neighbors at the time, also cyclists, introduced me to the app
+<a href="https://www.strava.com/">Strava</a>. Ever since then, I’ve tracked all of my rides,
+runs, hikes, walks (perhaps not really exercise that needs to be tracked… but
+I hurt myself early in 2018 and that’s all I could do for a while), etc.
+everything I could, I tracked.</p>
+<p>I got curious and found a package, <a href="https://github.com/fawda123/rStrava">rStrava</a>,
+where I can download all of my activity. Once I had it, I put it into a few
+visualizations.</p>
+</div>
+<div id="establish-strava-authentication" class="section level3">
+<h3>ESTABLISH STRAVA AUTHENTICATION</h3>
+<p>First thing I had to do was set up a Strava account and application. I found
+some really nice instructions on
+<a href="http://www.open-thoughts.com/2017/01/the-quantified-cyclist-analysing-strava-data-using-r/">another blog</a>
+that helped walk me through this.</p>
+<p>After that, I installed rStrava and set up authentication (you only have to do
+this the first time).</p>
+<pre class="r"><code>## INSTALLING THE NECESSARY PACKAGES
+install.packages(&quot;devtools&quot;)
+devtools::install_github(&#39;fawda123/rStrava&#39;)
+
+## LOAD THE LIBRARY
+library(rStrava)
+
+## ESTABLISH THE APP CREDENTIALS
+name &lt;- &#39;jakelearnsdatascience&#39; 
+client_id  &lt;- &#39;31528&#39; 
+secret &lt;- &#39;MY_SECRET_KEY&#39;
+
+## CREATE YOUR STRAVA TOKEN
+token &lt;- httr::config(token = strava_oauth(name, client_id, secret, app_scope = &quot;read_all&quot;,
+                                           cache = TRUE)) 
+## cache = TRUE is optional - but it saves your token to the working directory</code></pre>
+</div>
+<div id="get-my-exercise-data" class="section level3">
+<h3>GET MY EXERCISE DATA</h3>
+<p>Now that authentication is setup, using the <strong>rStrava</strong> package to pull activity
+data is relatively straightforward.</p>
+<pre class="r"><code>library(rStrava)
+
+## LOAD THE TOKEN (AFTER THE FIRST TIME)
+stoken &lt;- httr::config(token = readRDS(oauth_location)[[1]])
+
+## GET STRAVA DATA USING rStrava FUNCTION FOR MY ATHLETE ID
+my_act &lt;- get_activity_list(stoken)</code></pre>
+<p>This function returns a list of activities. class(my_act): list.</p>
+<p>In my case, there are 439 activies.</p>
+</div>
+<div id="formatting-the-data" class="section level3">
+<h3>FORMATTING THE DATA</h3>
+<p>To make the data easier to work with, I convert it to a data frame. There are
+many more fields than I’ve selected below - these are all I want for this post.</p>
+<pre class="r"><code>info_df &lt;- data.frame()
+for(act in 1:length(my_act)){
+        tmp &lt;- my_act[[act]]
+        
+        tmp_df &lt;- data.frame(name = tmp$name,
+                             type = tmp$type,
+                             distance = tmp$distance,
+                             moving_time = tmp$moving_time,
+                             elapsed_time = tmp$elapsed_time,
+                             start_date = tmp$start_date_local,
+                             total_elevation_gain = tmp$total_elevation_gain,
+                             trainer = tmp$trainer,
+                             manual = tmp$manual,
+                             average_speed = tmp$average_speed,
+                             max_speed = tmp$max_speed)
+        
+        info_df &lt;- rbind(info_df, tmp_df)
+}</code></pre>
+<p>I want to convert a few fields to units that make more sense for me (miles,
+feet, hours instead of meters and seconds). I’ve also created a number of features,
+though I’ve suppressed the code here. You can see all of the code on
+<a href="https://github.com/jrozra200/jakelearnsdatascience_v2/blob/master/content/post/2019-01-09-visualizing-data-from-strava.Rmd">github</a>.</p>
+</div>
+<div id="how-far-have-i-gone" class="section level3">
+<h3>HOW FAR HAVE I GONE?</h3>
+<p>Since August 08, 2014, I have - under my own power - traveled
+1300.85 miles. There were a few periods without much action
+(a whole year from mid-2016 through later-2017), which is a bit sad. The last
+few months have been good, though.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/overall_cumulative-1.png" width="100%" /></p>
+<p>Here’s a similar view, but split by activity.</p>
+<ul>
+<li>I’ve been running recently.</li>
+<li>I haven’t really ridden my bike since the first 2 summers I had it.</li>
+<li>I rode the peloton when we first got it, but not since.</li>
+<li>I was a walker when I first tore the labrum in my hip in early 2018.</li>
+</ul>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/by_activity-1.png" width="100%" /></p>
+<p>Finally, here’s the same data again, but split up in a
+<a href="https://cran.r-project.org/web/packages/ggridges/vignettes/introduction.html">ridgeplot</a>.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/ridgeplot-1.png" width="100%" /></p>
+</div>
+<div id="summary" class="section level3">
+<h3>SUMMARY</h3>
+<p>There’s a TON of data that is returned by the Strava API. This blog just
+scratches the surface of analysis that is possible - mostly I am just
+introducing how to get the data and get up and running.</p>
+<p>As a new year’s resolution, I’ve committed to run 312 miles this year. That is
+6 miles per week for 52 weeks (for those trying to wrap their head around the
+weird number). Now that I’ve been able to pull this data, I’ll have to set up
+a tracker/dashboard for that data. More to come!</p>
+</div>

@@ -1,0 +1,130 @@
+---
+title: A Data Scientist's Take on the Roadmap to AI
+author: Jacob Rozran
+date: '2019-03-23'
+slug: a-data-scientists-take-on-the-roadmap-to-ai
+summaryImage: "map.png"
+categories: 
+  - Data Science
+  - AI
+tags:
+  - data science
+  - AI
+  - roadmap
+  - data analytics
+  - maching learning
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<div id="introduction" class="section level1">
+<h1>INTRODUCTION</h1>
+<p>Recently I was asked by a former colleague about getting into AI. He has
+truly big data and wants to use this data to power “AI” - if the
+headlines are to be believed, everyone else is already doing it. Though it
+was difficult for my ego, I told him I couldn’t help him in our 30
+minute call and that he should think about hiring someone to get him
+there.</p>
+<p>The truth was I really didn’t have a solid answer for him in the moment.
+This was truly disappointing - in my current role and in my previous role,
+I put predictive models into production. After thinking about it for a
+bit, there is definitely a similar path I took in both roles.</p>
+<p>There’s 3 steps in my mind to getting to “AI.” Though this seems simple,
+it is a long process and potentially not linear - you may have to keep
+coming back to previous steps.</p>
+<ol style="list-style-type: decimal">
+<li>Baseline (Reporting)</li>
+<li>Understand (Advanced Analytics)</li>
+<li>Artificial Intelligence (Data Science)</li>
+</ol>
+</div>
+<div id="baseline-reporting" class="section level1">
+<h1>BASELINE (REPORTING)</h1>
+<p><em>Fun fact:</em> You cannot effectively predict anything if you cannot
+measure the impact.</p>
+<p>What I mean by <strong>baseline</strong> is building out a reporting suite.</p>
+<p>Having a fundamental understanding of your business and environment is
+key. Without doing this step, you may try to predict the wrong thing
+entirely - or start with something that isn’t the most impactful.</p>
+<p>For me, this step started with finding the data in the first place.
+Perhaps, like my colleague, you have lots of data and you’re ready to
+jump in. That’s great and makes getting started that much more
+straightforward. In my role, I joined a finance team that
+really didn’t have a good bead on this - finding the data was difficult
+(and getting the owners of that data to give me access was a
+process as well).</p>
+<p><strong>To be successfull, start small and iterate.</strong> Our first reports
+were built from manually downloading machine logs,
+processing them in R with JSON packages, and turning them into a
+black-and-white document. It was ugly, but it helped us know what
+we needed to know in that moment - oh yeah… it was MUCH better than
+nothing. <em>“Don’t let perfection be the enemy of good.”</em> - paraphrased from
+Voltaire.</p>
+<center>
+<img src="First_Report.png" title="fig:" alt="First Report - with some details removed" />
+</center>
+<p>From this, I gained access to our organizations data warehouse,
+put automation in place, and purchased some Tableau licenses. This
+phase took a few months and is constantly being refined, but we are now
+able to see the impact of our decisions at a glance.</p>
+<p>This new understanding inevitably leads to more questions - queue
+step 2: <strong>Understanding</strong>.</p>
+</div>
+<div id="understanding-advanced-analytics" class="section level1">
+<h1>UNDERSTANDING (ADVANCED ANALYTICS)</h1>
+<p>If you have never circulated reports and dashboards to others… let
+me fill you in on something: it will ALWAYS lead to additional,
+progressively harder questions.</p>
+<p>This step is an investment in time and expertise - you have to commit
+to having dedicated resource(s) (read: people… it is inhumane to
+call people resources and you may only need one person or some of
+a full time person’s time).</p>
+<ol style="list-style-type: decimal">
+<li>Why did X go up unexpectedly (breaks the current trend)?</li>
+<li>Are we over indexing on this type of customer?</li>
+<li>Right before our customer leaves, this weird thing happens - what
+is this weird thing and why is it happening?</li>
+</ol>
+<p>Like the previous step - this will be ongoing. Investing in someone to
+do advanced analytics will help you to understand the fine details
+of your business AND … (drum roll) … <strong>will help you to understand</strong>
+<strong>which part of your business is most ripe for “AI”!</strong></p>
+</div>
+<div id="artificial-intelligence-data-science" class="section level1">
+<h1>ARTIFICIAL INTELLIGENCE (DATA SCIENCE)</h1>
+<p>It is at this point that you will able to do real, bonafide, <strong>data </strong>
+<strong>science</strong>.</p>
+<p><em>A quick rant:</em> Notice that I purposefully did not use the term “AI”
+(I know I used it throughout this article and even in the title of
+this section…
+what can I say - I am in-tune with marketing concepts, too). “AI” is
+a term that is overused and rarely implemented. Data science, however,
+comes in many forms and can really transform your business.</p>
+<p>Here’s a few ideas for what you can do with <strong>data science</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>Prediction/Machine Learning</li>
+<li>Testing</li>
+<li>Graph Analysis</li>
+</ol>
+<p>Perhaps you want to <strong>predict</strong> whether a sale is fraud or which
+existing customer is most apt to buy your new product?</p>
+<p>You can also <strong>test</strong> whether a new strategy works better than the old.
+This requires that you use statistical concepts to ensure valid testing
+and results.</p>
+<p>My new obsession is around <strong>graph analysis</strong>. With graphs you can see
+relationships that may have been hidden before - this will enable you
+to identify new targets and enrich your understanding of your business!</p>
+<p>Data science usually is very specific thing and takes many forms!</p>
+</div>
+<div id="summary" class="section level1">
+<h1>SUMMARY</h1>
+<p>Getting to <strong>data science</strong> is a process - it will take an
+investment. There are products out there that will help you shortcut
+some of these steps and I encourage you to consider these.</p>
+<p>There are products to help with reporting, analytics, and data
+science. These should, in my very humble opinion, be used by
+people who are dedicated to the organizations data, analytics,
+and science.</p>
+<p><strong>Directions for data science - measure, analyze, predict, repeat!</strong></p>
+</div>
