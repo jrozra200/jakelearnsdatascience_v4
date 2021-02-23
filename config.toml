@@ -85,31 +85,37 @@ pygmentsCodeFencesGuessSyntax = true
     icon = "fa fa-linkedin"
     weight = 2
     url = "https://www.linkedin.com/in/jacob-rozran/"
+    target = "_blank"
 [[params.social]]
     name = "Twitter"
     icon = "fa fa-twitter"
     weight = 3
     url = "https://twitter.com/StatsManPHL/"
+    target = "_blank"
 [[params.social]]
     name = "Github"
     icon = "fa fa-github"
     weight = 4
     url = "https://github.com/jrozra200/"
+    target = "_blank"
 [[params.social]]
     name = "Tableau"
     icon = "fa fa-area-chart"
     weight = 5
     url = "https://github.com/jrozra200/"
+    target = "_blank"
 [[params.social]]
     name = "Plotly"
     icon = "fa fa-bar-chart"
     weight = 6
     url = "https://github.com/jrozra200/"
+    target = "_blank"
 [[params.social]]
     name = "flickr"
     icon = "fa fa-flickr"
     weight = 7
     url = "https://github.com/jrozra200/"
+    target = "_blank"
 
 
 [languages]
