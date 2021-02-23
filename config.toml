@@ -102,19 +102,19 @@ pygmentsCodeFencesGuessSyntax = true
     name = "Tableau"
     icon = "fa fa-area-chart"
     weight = 5
-    url = "https://github.com/jrozra200/"
+    url = "https://public.tableau.com/profile/jacob.rozran#!/"
     target = "_blank"
 [[params.social]]
     name = "Plotly"
     icon = "fa fa-bar-chart"
     weight = 6
-    url = "https://github.com/jrozra200/"
+    url = "https://plot.ly/~rozran00#/"
     target = "_blank"
 [[params.social]]
     name = "flickr"
     icon = "fa fa-flickr"
     weight = 7
-    url = "https://github.com/jrozra200/"
+    url = "https://www.flickr.com/photos/jakes_project_365/"
     target = "_blank"
 
 
