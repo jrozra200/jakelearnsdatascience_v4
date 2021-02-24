@@ -15,45 +15,51 @@ I need to make this my own. Be thoughtful about the order and topics here.
 
 # Topics
 
+## What is Statistics?
+
 1. What is Statistics?
-  i) What is Statistics?
-  ii) Population vs. Sample
-  iii) Categorical vs. Quantitative Variables
-2. Gathering Data
-  i) Surveys
-    A. Introduction
-    B. SRS
-    C. Other Sampling Designs
-    D. The Valid Survey
-    E. The Invalid Survey (Bias, etc.)
-  ii) Experiments & Observational Studies
-    A. Observational Studies
-    B. Experiments
-    C. Experiments: Control Groups
-    D. Experiments: Blocking
-    E. Lurking and Confounding Variables
-3. Displaying & Describing Data
-  i) 5 Number Summary
-    A. Median
-    B. Min & Max
-    C. Quartiles
-    D. Range & IQR
-  ii) Mean & Variance
-    A. Mean
-    B. Variance
-    C. Standard Deviation
-  iii) Data Visualization
-    A. Stem-and-Leaf Plots
-    B. Dot Plots
-    C. Histograms
-    D. Mosaic Plots
-    E. Bar Charts
-    F. Histograms
-    G. Scatter Plots
-  iv) Shape
-    A. Modes
-    B. Skew
-    C. Outliers
-    D. Outliers: Mean vs. Median
-    E. Outliers: Range vs. IQR
-4. The Normal Model
+2. Population vs. Sample
+3. Categorical vs. Quantitative Variables
+
+## Gathering Data
+
+1. Surveys
+  1. Introduction
+  2. SRS
+  3. Other Sampling Designs
+  4. The Valid Survey
+  5. The Invalid Survey (Bias, etc.)
+2. Experiments & Observational Studies
+  1. Observational Studies
+  2. Experiments
+  3. Experiments: Control Groups
+  4. Experiments: Blocking
+  5. Lurking and Confounding Variables
+
+## Displaying & Describing Data
+
+1. 5 Number Summary
+  1. Median
+  2. Min & Max
+  3. Quartiles
+  4. Range & IQR
+2. Mean & Variance
+  1. Mean
+  2. Variance
+  3. Standard Deviation
+3. Data Visualization
+  1. Stem-and-Leaf Plots
+  2. Dot Plots
+  3. Histograms
+  4. Mosaic Plots
+  5. Bar Charts
+  6. Histograms
+  7. Scatter Plots
+4. Shape
+  1. Modes
+  2. Skew
+  3. Outliers
+  4. Outliers: Mean vs. Median
+  5. Outliers: Range vs. IQR
+
+## The Normal Model
