@@ -16,44 +16,44 @@ I need to make this my own. Be thoughtful about the order and topics here.
 # Topics
 
 1. What is Statistics?
-    i) What is Statistics?
-    ii) Population vs. Sample
-    iii) Categorical vs. Quantitative Variables
+  i) What is Statistics?
+  ii) Population vs. Sample
+  iii) Categorical vs. Quantitative Variables
 2. Gathering Data
-    i) Surveys
-        A. Introduction
-        B. SRS
-        C. Other Sampling Designs
-        D. The Valid Survey
-        E. The Invalid Survey (Bias, etc.)
-    ii) Experiments & Observational Studies
-        A. Observational Studies
-        B. Experiments
-        C. Experiments: Control Groups
-        D. Experiments: Blocking
-        E. Lurking and Confounding Variables
+  i) Surveys
+    A. Introduction
+    B. SRS
+    C. Other Sampling Designs
+    D. The Valid Survey
+    E. The Invalid Survey (Bias, etc.)
+  ii) Experiments & Observational Studies
+    A. Observational Studies
+    B. Experiments
+    C. Experiments: Control Groups
+    D. Experiments: Blocking
+    E. Lurking and Confounding Variables
 3. Displaying & Describing Data
-    i) 5 Number Summary
-        A. Median
-        B. Min & Max
-        C. Quartiles
-        D. Range & IQR
-    ii) Mean & Variance
-        A. Mean
-        B. Variance
-        C. Standard Deviation
-    iii) Data Visualization
-        A. Stem-and-Leaf Plots
-        B. Dot Plots
-        C. Histograms
-        D. Mosaic Plots
-        E. Bar Charts
-        F. Histograms
-        G. Scatter Plots
-    iv) Shape
-        A. Modes
-        B. Skew
-        C. Outliers
-        D. Outliers: Mean vs. Median
-        E. Outliers: Range vs. IQR
+  i) 5 Number Summary
+    A. Median
+    B. Min & Max
+    C. Quartiles
+    D. Range & IQR
+  ii) Mean & Variance
+    A. Mean
+    B. Variance
+    C. Standard Deviation
+  iii) Data Visualization
+    A. Stem-and-Leaf Plots
+    B. Dot Plots
+    C. Histograms
+    D. Mosaic Plots
+    E. Bar Charts
+    F. Histograms
+    G. Scatter Plots
+  iv) Shape
+    A. Modes
+    B. Skew
+    C. Outliers
+    D. Outliers: Mean vs. Median
+    E. Outliers: Range vs. IQR
 4. The Normal Model
