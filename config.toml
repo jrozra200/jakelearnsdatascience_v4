@@ -143,4 +143,3 @@ pygmentsCodeFencesGuessSyntax = true
             name = "Resume"
             weight = 4
             url = "resume/cv.pdf"
-            target = "_blank"
