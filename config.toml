@@ -142,4 +142,5 @@ pygmentsCodeFencesGuessSyntax = true
             [[languages.en.menu.main]]
             name = "Resume"
             weight = 4
-            url = "resume/"
+            url = "resume/cv.pdf"
+            target = "_blank"
