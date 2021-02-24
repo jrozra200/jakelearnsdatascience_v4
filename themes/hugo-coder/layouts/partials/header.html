@@ -12,7 +12,7 @@
         {{ with .Site.Menus.main}}
           {{ range sort . }}
             <li class="navigation-item">
-              <a class="navigation-link" href="{{ .URL | relLangURL }}"{{ if .target }}target="{{ .target }}"{{ end }}>{{ .Name }}</a>
+              <a class="navigation-link" href="{{ .URL | relLangURL }}" aria-label="{{ .name }}" {{ if .target }}target="{{ .target }}"{{ end }}>{{ .Name }}</a>
             </li>
           {{ end }}
         {{ end }}
