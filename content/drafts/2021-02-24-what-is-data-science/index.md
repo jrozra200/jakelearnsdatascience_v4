@@ -7,8 +7,6 @@ categories: Data Science
 tags: data science
 ---
 
-# WHAT IS DATA SCIENCE?
-
 If you search for data science or data scientist, you get a lot of 
 [pretty Venn Diagrams](https://www.google.com/search?q=data+science+venn+diagram)
 or [cool infographics](https://www.google.com/search?q=modern+data+scientist) 
@@ -17,17 +15,17 @@ statistics, problem solving, computer science and engineering, data
 visualization, communication, and domain expertise.  
 
 Beyond those graphics in your search, you will find dense articles, blog posts, 
-and flashy adds about the latest machine learning (ML) or artificial 
+and flashy ads about the latest machine learning (ML) or artificial 
 intelligence (AI) tool and the custom fitted hardware to enable them. Hell, even 
-Apple's newest models of iPhone have custom hardware for AI built into them. 
+Apple's newest models of iPhone have custom hardware and AI built into them. 
 
 While I have spent a lot of time working on all of the skills above and trying 
 to digest and enjoy some of the new hotness in ML and AI, I think that this 
 tends to make data science less approachable and confuses people about what data 
 science really is all about.
 
-**In the end, data science is about finding data supported answers to real-life **
-**problems.** While sometimes it does seem enticing (and it certainly can seem 
+**In the end, data science is about finding data supported answers to real-life problems.** 
+While sometimes it does seem enticing (and it certainly can seem 
 impressive on a resume or in talking to your friends, family, and strangers) 
 to jump straight to the hardcore predictive end of the data science spectrum, 
 data science is a long and iterative path. Very generally speaking, data science 
@@ -35,7 +33,11 @@ is inclusive of issue discovery, data discovery, data visualization and story
 telling, advanced analytics, and testing and predictive analytics, and ethics 
 (stop when it makes sense; repeat if necessary).
 
+<p align="center">
+
 ![Data Science Lifecycle](ds_lifecycle.jpg)
+
+</p>
 
 # THE DATA SCIENCE LIFECYCLE
 
