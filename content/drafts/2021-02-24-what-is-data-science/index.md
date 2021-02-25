@@ -16,7 +16,7 @@ visualization, communication, and domain expertise.
 
 Beyond those graphics in your search, you will find dense articles, blog posts, 
 and flashy ads about the latest machine learning (ML) or artificial 
-intelligence (AI) tool and the custom fitted hardware to enable them. Hell, even 
+intelligence (AI) tools and the custom fitted hardware to enable them. Hell, even 
 Apple's newest models of iPhone have custom hardware and AI built into them. 
 
 While I have spent a lot of time working on all of the skills above and trying 
@@ -24,22 +24,24 @@ to digest and enjoy some of the new hotness in ML and AI, I think that this
 tends to make data science less approachable and confuses people about what data 
 science really is all about.
 
-**In the end, data science is about finding data supported answers to real-life problems.** 
+**In the end, data science is about finding data supported answers to real problems.** 
 While sometimes it does seem enticing (and it certainly can seem 
 impressive on a resume or in talking to your friends, family, and strangers) 
-to jump straight to the hardcore predictive end of the data science spectrum, 
-data science is a long and iterative path. Very generally speaking, data science 
-is inclusive of issue discovery, data discovery, data visualization and story 
-telling, advanced analytics, and testing and predictive analytics, and ethics 
-(stop when it makes sense; repeat if necessary).
+to jump straight to the bleeding edge of the data science spectrum, 
+data science is a long and iterative path. 
+
+Very generally speaking, data science is issue discovery, data discovery, data 
+visualization and story telling, advanced analytics, testing and predictive 
+analytics, and ethics (stop at any step if and when it makes sense; repeat a 
+step if necessary).
 
 <p align="center">
 
-![Data Science Lifecycle](ds_lifecycle.jpg)
+![Data Science Lifecycle](ds_lifecycle.png)
 
 </p>
 
-# THE DATA SCIENCE LIFECYCLE
+# SO... WHAT IS DATA SCIENCE? 
 
 ## DATA SCIENCE IS ALWAYS ITERATION AND COMMUNICATION
 
@@ -48,47 +50,40 @@ inherently an communicative process. A data scientist must be in constant
 communication with the relevant stakeholders. This can be the executive asking 
 questions, the DBA who knows the data best, the customer who is being affected 
 by your model's decision, the person who was handed a copy of your presentation 
-from 6 months ago, etc. In effect, I work for all of these people and need their 
-input to be successful. 
+from 6 months ago, etc. In effect, a data scientist works for all of these 
+people and needs their input to be successful. 
 
-Also, as you learn while progressing through the lifecycle, you may need to go 
-back a step (or more) and update (again). 
+Also, as you learn about the problem and data while progressing through the 
+lifecycle, you may need to go back a step (or more) and update (again). 
 
 ## DATA SCIENCE IS ALWAYS ISSUE DISCOVERY
 
 It is easy to ask a question: "How many users do we have on our platform?" or 
 "What should we expect in sales for this holiday season?" 
 
-It takes everything I have, every time, to not go run off and find an answer 
-right away. You must understand the nuance to the question and the context in 
-which the question is being asked. 
-
-For the first question posed above: What type of users? Web users? Active users? 
-If it is active users, active since when? Paying Customers? Anyone who has ever 
-logged in? You get the point. 
+A data scientist must understand the nuance to the question and the context in 
+which the question is being asked. For the first question posed above: What type 
+of users? Web users? Active users? If it is active users, active since when? 
+Paying Customers? Anyone who has ever logged in? You get the point. 
 
 Once you have clarified the question (which requires iteration with your 
-stakeholder), zoom out. Why is this person asking that question? What are they 
-going to do with that information? Is it worth it for me to spend a ton of 
-effort on it? This all informs how you tackle the problem and the lens through
-which you look at the data. If any of it is unclear, go back and ask.
+stakeholders), zoom out. Why is this person asking that question? What are they 
+going to do with that information? Is it worth it to spend a ton of 
+effort on it? This all informs how to tackle the problem and the lens through
+which to look at the data. 
 
 ## DATA SCIENCE IS ALWAYS DATA DISCOVERY
 
-Once the problem and context are clear, you need data to solve your problem. 
-This data is never what you are expecting. The real world is messy and so too is 
-the data. There will be nonsensical values, missing values, duplicate values, 
-etc. Data changes over time and is sometimes in weird formats. 
+There is no data science without data. 
 
-Combing through the data to find all of this can be tedious and it almost 
-certainly will require reaching out to someone else for more information. A 
-good exploratory data analysis is absolutely essential for any downstream steps 
-to be successful. 
+However, the data is never what you are expecting. The real world is messy and 
+so too is the data. There will be nonsensical values, missing values, duplicate 
+values, etc. Data changes over time and is sometimes in weird formats. 
 
-You do not want to proceed to the next step without a comprehensive 
-understanding of the data. From experience, I can tell you it does not feel good 
-to spend hours working on a report to have the stakeholder blow it up in the 
-first minute because you presented the data incorrectly. 
+Data scientists cannot proceed without a comprehensive understanding of the 
+data. This is a collaborative process and typically results in more questions 
+for issue discovery. The hope is to proceed from this set with a viable dataset. 
+Sometimes, though, you cannot proceed because the data is not useable. 
 
 ## DATA SCIENCE IS MOST OF THE TIME DATA VISUALIZATION AND STORY TELLING
 
