@@ -2,7 +2,7 @@
 title: "Ethics in Data Science"
 author: Jacob Rozran
 date: '2021-02-25'
-slug: what-is-data-science
+slug: ethics-in-data-science
 categories:
     - Data Science
     - Ethics
