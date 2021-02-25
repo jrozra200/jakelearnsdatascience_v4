@@ -83,37 +83,44 @@ values, etc. Data changes over time and is sometimes in weird formats.
 Data scientists cannot proceed without a comprehensive understanding of the 
 data. This is a collaborative process and typically results in more questions 
 for issue discovery. The hope is to proceed from this set with a viable dataset. 
-Sometimes, though, you cannot proceed because the data is not useable. 
+Sometimes, though, you cannot proceed because the data is not usable. 
 
 ## DATA SCIENCE IS MOST OF THE TIME DATA VISUALIZATION AND STORY TELLING
 
-descriptive
-data presentation - decks and dashboards
-visualizations that are clean and clear
-story telling
-explaining complex nuance in simple language but not offending anyone's intelligence
-iterate with the "client" to understand what is expected and what is surprising
+Taking raw data and turning it into insight is pivotal for data science. Once 
+the data scientist discovers an insight, though, she has to communicate that 
+outwards. 
+
+In this regards, data science is a process of being very thoughtful about the 
+message and the best way to convey it. This comes in the form of presentations 
+and dashboards using words, tables, charts, and graphs. Beyond this, data 
+science is simplifying complex analysis into consumable pieces for the relevant 
+stakeholders. 
 
 Side note: Data science is NOT pie charts or 3d effects. Period. 
 
 ## DATA SCIENCE IS OFTEN ADVANCED ANALYTICS
 
-things may stick out, so you do a deep dive on those things
-this is your advanced analytics
-iterate with the "client" to identify causes for these weird things
-this may require you to get more data and start back at the EDA and descriptive analytics
+It is rare that a data scientist will get through the data discovery and story 
+telling steps without anomalies popping up. Investigating these anomalies and 
+other quirks is often referred to as advanced analytics. These often turn into 
+their own presentations and dashboards, too.
 
 ## DATA SCIENCE IS SOMETIMES TESTING AND PREDICTIVE ANALYTICS
 
-once you and your "client" have a good hold on what is happening, then you can start to do predictive analytics
-this _can_ be cool stuff, like random forests, GBM, neural networks, but regression is often easier to implement and better to understand
-start small and do tests - A/B testing to see if your prediction moves the needle in a meeaningful way
-then roll it out in scale
-all the while, iterate with your "client" to make sure things are working as expected
+One prerequisite to this step is having a good baseline understanding of the 
+area in which you are trying to model. How do you know if your model is 
+improving anything if you've never measured it before? 
 
-prediction comes in a lot of flavors; in marketing you are trying to predict who is the most apt to buy your thing
-in credit you are predicting who will (or won't) pay you back
-in computer vision, you are predicting what an object is
+Predictive analytics _can_ be cool stuff, like random forests, GBM, neural 
+networks, but regression is often easier to implement and better to understand. 
+It is usually best to start small and do tests to see if your prediction moves 
+the needle in a meaningful way.
+
+Prediction comes in a lot of flavors: in marketing you are trying to predict 
+who is the most apt to buy your thing; in credit and finance you are predicting 
+who will (or won't) pay you back; in computer vision, you are predicting what an 
+object is. 
 
 ## DATA SCIENCE IS ALWAYS ETHICS
 
@@ -121,10 +128,10 @@ It is not in the lifecycle diagram, but it really should be. The hard part about
 adding it is that it needs to live at every step of the process. Data scientists 
 often get access to sensitive data and are asked to make powerful tools that 
 affect real people in real ways. Knowing what your outputs are being used for 
-and why they are being used is necessary to start, then knowing when (and 
-speaking up) that crosses an ethical boundary. We all come with our biases and 
+and why they are being used is necessary to start, then knowing when that 
+crosses an ethical boundary (and speaking up). We all come with our biases and 
 need to make sure we are not propagating them through our work - it is very easy 
-in data science to forget this because you are removed from the actual decision.
+in data science to forget this.
 
 Use data for good. Primum non nocere. First do no harm.
 
