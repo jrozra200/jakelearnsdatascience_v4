@@ -1,10 +1,12 @@
 ---
 title: "What is Data Science?"
 author: "Jacob Rozran"
-date: '2021-02-24'
+date: '2021-02-26'
 slug: what-is-data-science
-categories: Data Science
-tags: data science
+categories: 
+    - Data Science
+tags: 
+    - data science
 ---
 
 If you search for data science or data scientist, you get a lot of 
