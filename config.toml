@@ -34,6 +34,7 @@ pygmentsCodeFencesGuessSyntax = true
     
     favicon_32 = "/images/favicon-192.png"
     favicon_16 = "/images/favicon-192.png"
+    touchIcon = "/images/jakes_logo.png"
 
     # Git Commit in Footer, uncomment the line below to enable it.
     commit = "https://github.com/luizdepra/hugo-coder/tree/"
