@@ -142,5 +142,3 @@ Use data for good. Primum non nocere. First do no harm.
 Data science is a lot of things, but primarily it is problem solving. It fits 
 within every business unit and in every industry. Many people are doing data 
 science every day, and have been for a long time! 
-
-Please... let me know how I can help!
