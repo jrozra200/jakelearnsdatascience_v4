@@ -49,7 +49,7 @@ step if necessary).
 ## DATA SCIENCE IS ALWAYS ITERATION AND COMMUNICATION
 
 To begin with, data science is 
-inherently an communicative process. A data scientist must be in constant 
+inherently n communicative process. A data scientist must be in constant 
 communication with the relevant stakeholders. This can be the executive asking 
 questions, the DBA who knows the data best, the customer who is being affected 
 by your model's decision, the person who was handed a copy of your presentation 
