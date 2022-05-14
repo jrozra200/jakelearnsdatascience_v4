@@ -102,7 +102,7 @@ pygmentsCodeFencesGuessSyntax = true
 [[params.social]]
     name = "Tableau"
     icon = "fa fa-area-chart"
-    weight = 5
+    weight = 7
     url = "https://public.tableau.com/profile/jacob.rozran#!/"
     target = "_blank"
 [[params.social]]
@@ -114,7 +114,7 @@ pygmentsCodeFencesGuessSyntax = true
 [[params.social]]
     name = "flickr"
     icon = "fa fa-flickr"
-    weight = 7
+    weight = 5
     url = "https://www.flickr.com/photos/jakes_project_365/"
     target = "_blank"
 
@@ -134,13 +134,18 @@ pygmentsCodeFencesGuessSyntax = true
             name = "Posts"
             weight = 2
             url = "posts/"
+            
+            [[languages.en.menu.main]]
+            name = "Presentations"
+            weight = 3
+            url = "presentations/"
 
             [[languages.en.menu.main]]
             name = "Projects"
-            weight = 3
+            weight = 4
             url = "projects/"
             
             [[languages.en.menu.main]]
             name = "Resume"
-            weight = 4
+            weight = 5
             url = "resume/cv.pdf"
