@@ -131,14 +131,14 @@ pygmentsCodeFencesGuessSyntax = true
             url = "about/"
 
             [[languages.en.menu.main]]
-            name = "Posts"
+            name = "On Life"
             weight = 2
-            url = "posts/"
+            url = "on_life/"
             
             [[languages.en.menu.main]]
-            name = "Presentations"
+            name = "Data Science"
             weight = 3
-            url = "presentations/"
+            url = "data_science/"
 
             [[languages.en.menu.main]]
             name = "Projects"
