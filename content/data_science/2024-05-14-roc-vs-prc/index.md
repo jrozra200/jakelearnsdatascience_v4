@@ -84,7 +84,7 @@ When you are building predictive models, there are four questions to consider:
 Based on those four metrics, data scientists create a **confusion matrix**, 
 which is just a confusing name for putting those four values into a table.
 
-![Confusion Matrix](image002.png){ style="display: block; margin: 0 auto" }
+![Confusion Matrix](image002.png)
 
 Keep a mental note of this confusion matrix. We are going to come back to this 
 to in a section or two to create additional metrics (metrics from metrics - 
@@ -102,11 +102,7 @@ perfectly separating the classes. This is unusual, but let's look at an example.
 The ROC Curve (image below) shows the True Positive Rate (y-axis) by the False 
 Positive Rate (x-axis). 
 
-
-
 ![ROC Curve](image003.png)
-
-
 
 [Image Credit: Wikipedia](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Roc_curve.svg/1920px-Roc_curve.svg.png)
 
@@ -165,11 +161,7 @@ what was predicted here:
 	- Our False Positive Rate (FPR)<sup>3</sup> is $\dfrac{0}{6}=0=0\%$. 
 - These values - (0, 0.25) - become the first point in our ROC graph. 
 
-
-
 ![ROC Curve 1 Point](image004.png)
-
-
 
 **2**: $TPR = \dfrac{TP}{Total_{TP}}$  
 
@@ -191,11 +183,7 @@ is what was predicted here:
 	- Our False Positive Rate (FPR) is $\dfrac{0}{6}=0=0\%$. 
 - These values - (0, 0.50) - become the second point in our ROC graph. 
 
-
-
 ![ROC Curve 2 Point](image005.png)
-
-
 
 #### Step 10
 
@@ -223,21 +211,13 @@ what was predicted here:
 	- Our False Positive Rate (FPR) is $\dfrac{6}{6}=1.00=100\%$. 
 - These values - (1.00, 1.00) - become the last point in our ROC graph. 
 
-
-
 ![ROC Curve 10 Points](image006.png)
-
-
 
 ### Drawbacks of the ROC - What is it Actually Measuring?
 
 Actual ROC Curve: 
 
-
-
-![Actual ROC Curve](image007.png)  
-
-
+![Actual ROC Curve](image007.png)
 
 The ROC Curve is fully focused on the positive predictions and includes the 
 True Negative count. In the case of fraud detection, positive predictions are a 
@@ -259,11 +239,7 @@ to comprehend.
 
 ### Precision (y-axis)
 
-
-
 $precision = \dfrac{TP}{TP + FP}$ 
-
-
 
 where a True Positive (TP) means you were fraud and the model predicted you were 
 fraud and a False Positive (FP) means you were a good customer and the 
@@ -274,11 +250,7 @@ percent of the time does the model get it correct?
 
 ### Recall (x-axis)
 
-
-
 $recall = \dfrac{TP}{TP + FN}$
-
-
 
 where a True Positive (TP) means you were fraud and the model predicted you were 
 fraud and a False Negative (FN) means you were fraud and the model predicted you 
@@ -317,10 +289,7 @@ everything at the corresponding row and above.
 | 7           | Good Customer    | 0.117337229 | 4              | 5               | 0               | 44%       | 100%   |
 | 5           | Good Customer    | 0.036683147 | 4              | 6               | 0               | 40%       | 100%   |
 
-
 ![PRC Example](image001.png)  
-
-
 
 # Learning from the Metrics
 
