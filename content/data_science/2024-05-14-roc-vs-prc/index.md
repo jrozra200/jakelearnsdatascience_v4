@@ -1,7 +1,7 @@
 ---
 title: "Model Comparison - ROC vs. Precision-Recall Curves"
 author: Jake Rozran
-date: '2020-01-27'
+date: '2025-05-14'
 slug: model-comparison--understanding-ROC-curves-and-AUC
 summaryImage: "image007.png"
 categories:
@@ -11,8 +11,9 @@ categories:
 tags:
 - data science
 - AI
-- model coparison
+- model comparison
 - ROC curves
+- Precision-Recall curves
 - AUC
 ---
 
