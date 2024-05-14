@@ -49,10 +49,10 @@ on loan, etc.
 	**majority class**<sup>1</sup>
 	2. Also referred to as the **negative class**
 
-_**1**: Why minority and majority? Well... in an **imbalanced dataset** you have _
-_way MORE observations normal class than in your target class... like... _
-_sometimes WAY WAY WAY more. Maybe 1MM observations that aren't fraud, for _
-_example, to every observation that could be._
+**1**: Why minority and majority? Well... in an **imbalanced dataset** you have 
+way MORE observations normal class than in your target class... like... 
+sometimes WAY WAY WAY more. Maybe 1MM observations that aren't fraud, for 
+example, to every observation that could be.
 
 These two classes, where we have both the actual class (what we observe in the 
 wild) and the predicted class (what the model thought it would be), are the 
@@ -163,8 +163,8 @@ what was predicted here:
 
 ![ROC Curve 1 Point](image004.png)
 
-***2**: $TPR = \dfrac{TP}{Total_{TP}}$* 
-***3**: $FPR = \dfrac{FP}{Total_{TN}}$* 
+**2**: $TPR = \dfrac{TP}{Total_{TP}}$  
+**3**: $FPR = \dfrac{FP}{Total_{TN}}$
 
 #### Step 2
 
