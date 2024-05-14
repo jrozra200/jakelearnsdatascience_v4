@@ -164,7 +164,8 @@ what was predicted here:
 ![ROC Curve 1 Point](image004.png)
 
 **2**: $TPR = \dfrac{TP}{Total_{TP}}$  
-**3**: $FPR = \dfrac{FP}{Total_{TN}}$
+
+**3**: $FPR = \dfrac{FP}{Total_{TN}}$  
 
 #### Step 2
 
