@@ -1,5 +1,5 @@
 ---
-title: "Model Comparision - ROC Curves & AUC"
+title: "Model Comparison - ROC Curves & AUC"
 author: Jacob Rozran
 date: '2020-01-27'
 slug: model-comparison--understanding-ROC-curves-and-AUC
@@ -11,7 +11,7 @@ categories:
 tags:
 - data science
 - AI
-- model coparison
+- model comparison
 - ROC curves
 - AUC
 ---

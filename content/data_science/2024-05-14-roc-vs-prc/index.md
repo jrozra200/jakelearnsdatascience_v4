@@ -1,9 +1,9 @@
 ---
-title: "Model Comparision - ROC Curves & AUC"
-author: Jacob Rozran
+title: "Model Comparison - ROC vs. Precision-Recall Curves"
+author: Jake Rozran
 date: '2020-01-27'
 slug: model-comparison--understanding-ROC-curves-and-AUC
-summaryImage: "roc_curve.jpg"
+summaryImage: "image007.png"
 categories:
 - Data Science
 - AI
@@ -83,7 +83,7 @@ When you are building predictive models, there are four questions to consider:
 Based on those four metrics, data scientists create a **confusion matrix**, 
 which is just a confusing name for putting those four values into a table.
 
-![Confusion Matrix](index_files/Screenshot\ 2024-05-14\ at\ 5.59.27\ AM.png)
+![Confusion Matrix](Screenshot\ 2024-05-14\ at\ 5.59.27\ AM.png)
 
 Keep a mental note of this confusion matrix. We are going to come back to this 
 to in a section or two to create additional metrics (metrics from metrics - 
@@ -101,7 +101,7 @@ perfectly separating the classes. This is unusual, but let's look at an example.
 The ROC Curve (image below) shows the True Positive Rate (y-axis) by the False 
 Positive Rate (x-axis). 
 
-![ROC Curve](index_files/Screenshot 2024-05-13\ at\ 9.57.18\ AM.png)
+![ROC Curve](Screenshot 2024-05-13\ at\ 9.57.18\ AM.png)
 [Image Credit: Wikipedia](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Roc_curve.svg/1920px-Roc_curve.svg.png)
 
 ### The Perfect ROC Curve
@@ -159,7 +159,7 @@ what was predicted here:
 	- Our False Positive Rate (FPR)<sup>3</sup> is $\dfrac{0}{6}=0=0\%$. 
 - These values - (0, 0.25) - become the first point in our ROC graph. 
 
-![ROC Curve 1 Point](index_files/Screenshot\ 2024-05-13\ at\ 10.19.04\ AM.png)
+![ROC Curve 1 Point](Screenshot\ 2024-05-13\ at\ 10.19.04\ AM.png)
 ***2**: $TPR = \dfrac{TP}{Total_{TP}}$* 
 ***3**: $FPR = \dfrac{FP}{Total_{TN}}$* 
 
@@ -178,7 +178,7 @@ is what was predicted here:
 	- Our False Positive Rate (FPR) is $\dfrac{0}{6}=0=0\%$. 
 - These values - (0, 0.50) - become the second point in our ROC graph. 
 
-![ROC Curve 1 Point](index_files/Screenshot\ 2024-05-13\ at\ 10.20.07\ AM.png)
+![ROC Curve 2 Point](Screenshot\ 2024-05-13\ at\ 10.20.07\ AM.png)
 
 #### Step 10
 
@@ -206,13 +206,13 @@ what was predicted here:
 	- Our False Positive Rate (FPR) is $\dfrac{6}{6}=1.00=100\%$. 
 - These values - (1.00, 1.00) - become the last point in our ROC graph. 
 
-![ROC Curve 1 Point](index_files/Screenshot\ 2024-05-13\ at\ 10.22.23\ AM.png)
+![ROC Curve 10 Points](Screenshot\ 2024-05-13\ at\ 10.22.23\ AM.png)
 
 ### Drawbacks of the ROC - What is it Actually Measuring?
 
 Actual ROC Curve: 
 
-![Actual ROC Curve](index_files/image007.png)
+![Actual ROC Curve](image007.png)
 
 
 The ROC Curve is fully focused on the positive predictions and includes the 
@@ -285,7 +285,7 @@ everything at the corresponding row and above.
 | 7           | Good Customer    | 0.117337229 | 4              | 5               | 0               | 44%       | 100%   |
 | 5           | Good Customer    | 0.036683147 | 4              | 6               | 0               | 40%       | 100%   |
 
-![PRC Example](index_files/image001.png)
+![PRC Example](image001.png)
 
 
 # Learning from the Metrics
