@@ -159,7 +159,7 @@ current_deal_volume <- function(dat, token) {
                   plot.background = element_rect(fill = NA, color = "black"))
 }
 
-model_performance <- function(today, dat, token, buy_thresh) {
+model_performance <- function(today, dat, token, buy_thresh, sell_thresh) {
     csv <- paste0("../../data/one_percent/returns_", tolower(token), ".csv")
     hist <- read_csv(csv) %>% 
         filter(pred_date < Sys.Date() - days(1))
@@ -173,34 +173,40 @@ model_performance <- function(today, dat, token, buy_thresh) {
         write_csv(csv)
     
     hist <- hist %>% 
+        select(names(today)) %>% 
         bind_rows(today) %>% 
         left_join(dat %>% select(date, pc_30d, price, price_30d), 
                   by = c("pred_date" = "date")) %>% 
         mutate(buy_decision = buy_prob > buy_thresh,
-               decision = case_when(is.na(pc_30d) ~ "unknown",
-                                    buy_decision == TRUE & pc_30d >= 0 ~ "TP",
-                                    buy_decision == TRUE & pc_30d < 0.1 ~ "FP",
-                                    buy_decision == FALSE & pc_30d >= 0.1 ~ "FN",
-                                    buy_decision == FALSE & pc_30d < 0.1 ~ "TN"),
-               color = case_when(decision == "TP" | decision == "TN" ~ "green", 
-                                 decision == "FP" | decision == "FN" ~ "red",
-                                 is.na(pc_30d) ~ "unknown"),
-               shape = ifelse(buy_decision, "o", "x"))
+               sell_decision = sell_prob > sell_thresh,
+               decision = case_when(sell_decision ~ "S",
+                                    buy_decision & !sell_decision ~ "B",
+                                    1 == 1 ~ "H"),
+               confusion = case_when(is.na(pc_30d) ~ "unknown",
+                                     ((decision == "S" & pc_30d <= 0) | 
+                                          (decision == "B" & pc_30d >= 0) |
+                                          (decision == "H" & pc_30d >= -0.1)) ~ "correct",
+                                     ((decision == "S" & pc_30d > 0) | 
+                                          (decision == "B" & pc_30d < 0) |
+                                          (decision == "H" & pc_30d < -0.1)) ~ "incorrect"))
     
     plot_dat <- hist %>% 
         filter(pred_date >= Sys.Date() - days(100)) 
     
     ggplot(plot_dat, aes(x = pred_date)) +
-        geom_errorbar(aes(ymin = price, ymax = price_30d, color = color), width = 0) +
+        geom_errorbar(aes(ymin = price, ymax = price_30d, color = confusion), width = 0) +
         geom_line(aes(y = price)) + 
-        geom_point(aes(color = color, shape = shape), size = 2, y = min(plot_dat$price)) + 
-        scale_color_manual(values = c("forestgreen", "red", "blue")) + 
-        scale_shape_manual(values = c("B", "D", "?")) + 
+        geom_point(aes(color = confusion, shape = decision), size = 2, 
+                   y = min(plot_dat$price)) + 
+        scale_color_manual(values = c("correct" = "forestgreen", 
+                                      "incorrect" = "red", 
+                                      "unknown" = "blue")) + 
+        scale_shape_manual(values = c("B" = "B", "H" = "H", "S" = "S")) + 
         scale_y_continuous(labels = dollar_format()) + 
-        ggtitle(paste0("Price of ", token, " & Model Decision"),
+        ggtitle("Price of BTC & Buy Model Decision",
                 subtitle = paste0("Price in 30d Represented by Colored Lines\n", 
                                   "Green: Correct Decision; Red: Incorrect; Blue:",
-                                  " Too Recent\nB: Buy; D: Don't Buy")) + 
+                                  " Too Recent\nB: Buy; S: Sell; H: Hold")) + 
         theme(panel.background = element_blank(),
               panel.grid.major = element_line(color = "light gray"),
               axis.ticks = element_blank(), 
@@ -240,7 +246,9 @@ tmp <- NULL
 
 ## Summary
 
-BTC IS A SELL.
+BTC is going down by 10% in the next 30 days.
+
+ETH is going down by 10% in the next 30 days.
 
 ## Current Data
 
@@ -374,13 +382,13 @@ eth_today = get_today_pred(r.eth, eth_features)
 ### BTC
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 4, out.width = "100%"}
-model_performance(py$btc_today, btc, "BTC", 0.13)
+model_performance(py$btc_today, btc, "BTC", 0.13, 0.6)
 ```
 
 ### ETH
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 4, out.width = "100%"}
-model_performance(py$eth_today, eth, "ETH", 0.6)
+model_performance(py$eth_today, eth, "ETH", 0.17, 0.6)
 ```
 
 
