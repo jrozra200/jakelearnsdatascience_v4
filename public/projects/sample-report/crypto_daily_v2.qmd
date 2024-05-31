@@ -134,16 +134,14 @@ todays_holds %>%
 - A *hold* decision means the token is predicted to stay within 10% of the 
 current price in the next 30 days
 
-## Historical Performance
+## Historical Performance - Last 60 Days
 
-I need to do some performance calculations here.
+### Aggregate Performance per Token
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| out-width: "100%"
-#| fig-height: 27
 
 plot_dat <- py$pred_dat %>% 
     left_join(py$all_dat %>% 
@@ -168,9 +166,39 @@ plot_dat <- py$pred_dat %>%
                                       (decision == "B" & pc_30d < 0) |
                                       (decision == "H" & pc_30d < -0.1)) ~ "incorrect")) %>% 
     filter(token %in% py$tokens$token[py$tokens$buy_ind == "buy"] & 
-               pred_date >= Sys.Date() - days(90)) %>% 
-    mutate(min_price = min(price))
-    
+               pred_date >= Sys.Date() - days(91)) %>% 
+    mutate(min_price = min(price)) 
+
+plot_dat %>% 
+    filter(!is.na(pc_30d) & 
+               token %in% py$tokens$token[py$tokens$buy_ind == "buy"]) %>%
+    summarise(`Total Correct` = sum(ifelse(confusion == "correct", 1, 0)),
+              `Total Incorrect` = sum(ifelse(confusion == "incorrect", 1, 0)),
+              `Total Correct Rate` = percent(`Total Correct` / 
+                                                 (`Total Correct` + `Total Incorrect`)),
+              `Buy Correct` = sum(ifelse(decision == "B" & confusion == "correct", 1, 0)),
+              `Buy Incorrect` = sum(ifelse(decision == "B" & confusion == "incorrect", 1, 0)),
+              `Buy Correct Rate` = percent(`Buy Correct` / (`Buy Correct` + `Buy Incorrect`)),
+              `Sell Correct` = sum(ifelse(decision == "S" & confusion == "correct", 1, 0)),
+              `Sell Incorrect` = sum(ifelse(decision == "S" & confusion == "incorrect", 1, 0)),
+              `Sell Correct Rate` = percent(`Sell Correct` / 
+                                                (`Sell Correct` + `Sell Incorrect`)),
+              `Hold Correct` = sum(ifelse(decision == "H" & confusion == "correct", 1, 0)),
+              `Hold Incorrect` = sum(ifelse(decision == "H" & confusion == "incorrect", 1, 0)),
+              `Hold Correct Rate` = percent(`Hold Correct` / 
+                                                (`Hold Correct` + `Hold Incorrect`))) %>%
+    kbl() %>%
+    kable_minimal()
+```
+
+### Graphical View of Performance
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| out-width: "100%"
+#| fig-height: 27
 
 ggplot(plot_dat, aes(x = pred_date)) +
     geom_errorbar(aes(ymin = price, ymax = price_30d, color = confusion), 
