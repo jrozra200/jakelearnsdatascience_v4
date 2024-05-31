@@ -7,8 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jake Rozran - RLE Analytics">
+<meta name="dcterms.date" content="2024-05-31">
 
-<title>RLE Analytics - Crypto Daily Report</title>
+<title>RLE Analytics: Crypto Daily Report</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -24,20 +25,20 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="btc_eth_report_v3_files/libs/clipboard/clipboard.min.js"></script>
-<script src="btc_eth_report_v3_files/libs/quarto-html/quarto.js"></script>
-<script src="btc_eth_report_v3_files/libs/quarto-html/popper.min.js"></script>
-<script src="btc_eth_report_v3_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="btc_eth_report_v3_files/libs/quarto-html/anchor.min.js"></script>
-<link href="btc_eth_report_v3_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="btc_eth_report_v3_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="btc_eth_report_v3_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="btc_eth_report_v3_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="btc_eth_report_v3_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="crypto_daily_v2_files/libs/clipboard/clipboard.min.js"></script>
+<script src="crypto_daily_v2_files/libs/quarto-html/quarto.js"></script>
+<script src="crypto_daily_v2_files/libs/quarto-html/popper.min.js"></script>
+<script src="crypto_daily_v2_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="crypto_daily_v2_files/libs/quarto-html/anchor.min.js"></script>
+<link href="crypto_daily_v2_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="crypto_daily_v2_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="crypto_daily_v2_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="crypto_daily_v2_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="crypto_daily_v2_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <style>html{ scroll-behavior: smooth; }</style>
 
-<script src="btc_eth_report_v3_files/libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="btc_eth_report_v3_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<script src="crypto_daily_v2_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="crypto_daily_v2_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 
 
 </head>
@@ -50,23 +51,14 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#summary" id="toc-summary" class="nav-link active" data-scroll-target="#summary">Summary</a></li>
-  <li><a href="#current-data" id="toc-current-data" class="nav-link" data-scroll-target="#current-data">Current Data</a>
+  <li><a href="#what-to-do-today" id="toc-what-to-do-today" class="nav-link active" data-scroll-target="#what-to-do-today">What to do Today</a>
   <ul class="collapse">
-  <li><a href="#btc" id="toc-btc" class="nav-link" data-scroll-target="#btc">BTC</a></li>
-  <li><a href="#eth" id="toc-eth" class="nav-link" data-scroll-target="#eth">ETH</a></li>
+  <li><a href="#todays-buys" id="toc-todays-buys" class="nav-link" data-scroll-target="#todays-buys">Today’s Buys</a></li>
+  <li><a href="#todays-sells" id="toc-todays-sells" class="nav-link" data-scroll-target="#todays-sells">Today’s Sells</a></li>
+  <li><a href="#todays-holds" id="toc-todays-holds" class="nav-link" data-scroll-target="#todays-holds">Today’s Holds</a></li>
   </ul></li>
-  <li><a href="#day-predictions" id="toc-day-predictions" class="nav-link" data-scroll-target="#day-predictions">30 Day Predictions</a>
-  <ul class="collapse">
-  <li><a href="#btc-1" id="toc-btc-1" class="nav-link" data-scroll-target="#btc-1">BTC</a></li>
-  <li><a href="#eth-1" id="toc-eth-1" class="nav-link" data-scroll-target="#eth-1">ETH</a></li>
-  </ul></li>
-  <li><a href="#day-price-simulations" id="toc-day-price-simulations" class="nav-link" data-scroll-target="#day-price-simulations">30 Day Price Simulations</a>
-  <ul class="collapse">
-  <li><a href="#btc-2" id="toc-btc-2" class="nav-link" data-scroll-target="#btc-2">BTC</a></li>
-  <li><a href="#eth-2" id="toc-eth-2" class="nav-link" data-scroll-target="#eth-2">ETH</a></li>
-  </ul></li>
-  <li><a href="#list-of-securities-tracked" id="toc-list-of-securities-tracked" class="nav-link" data-scroll-target="#list-of-securities-tracked">List of Securities Tracked</a></li>
+  <li><a href="#historical-performance" id="toc-historical-performance" class="nav-link" data-scroll-target="#historical-performance">Historical Performance</a></li>
+  <li><a href="#current-token-data" id="toc-current-token-data" class="nav-link" data-scroll-target="#current-token-data">Current Token Data</a></li>
   </ul>
 </nav>
 </div>
@@ -74,7 +66,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">RLE Analytics - Crypto Daily Report</h1>
+<h1 class="title">RLE Analytics: Crypto Daily Report</h1>
 </div>
 
 
@@ -88,6 +80,12 @@ ul.task-list li input[type="checkbox"] {
           </div>
   </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 31, 2024</p>
+    </div>
+  </div>
   
     
   </div>
@@ -95,130 +93,214 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<section id="summary" class="level2">
-<h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<p>BTC is going down by 10% in the next 30 days.</p>
-<p>ETH is going down by 10% in the next 30 days.</p>
-</section>
-<section id="current-data" class="level2">
-<h2 class="anchored" data-anchor-id="current-data">Current Data</h2>
-<section id="btc" class="level3">
-<h3 class="anchored" data-anchor-id="btc">BTC</h3>
+<section id="what-to-do-today" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-do-today">What to do Today</h2>
+<section id="todays-buys" class="level3">
+<h3 class="anchored" data-anchor-id="todays-buys">Today’s Buys</h3>
 <div class="cell">
 <div class="cell-output-display">
 <table class="lightable-minimal table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">Current Price</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Yesterday's Price</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">52 Week High</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">52 Week Low</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Market Cap</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Yesterday's Volume</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Token</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Prediction Date</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Decision</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">$69,181.20</td>
-<td style="text-align: left;">$70,189.84</td>
-<td style="text-align: left;">$73,097.77</td>
-<td style="text-align: left;">$25,107.75</td>
-<td style="text-align: left;">$1.36T</td>
-<td style="text-align: left;">$41.11B</td>
+<td style="text-align: left;">BCH</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Buy</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CRO</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Buy</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PEPE</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Buy</td>
 </tr>
 </tbody>
 </table>
 
 
 </div>
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" style="width:100.0%"></p>
 </div>
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid" style="width:100.0%"></p>
-</div>
-</div>
-</section>
-<section id="eth" class="level3">
-<h3 class="anchored" data-anchor-id="eth">ETH</h3>
-<div class="cell">
-<div class="cell-output-display">
-<table class="lightable-minimal table table-sm table-striped small" data-quarto-postprocess="true">
-<thead>
-<tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">Current Price</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Yesterday's Price</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">52 Week High</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">52 Week Low</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Market Cap</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Yesterday's Volume</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">$3,741.90</td>
-<td style="text-align: left;">$3,792.49</td>
-<td style="text-align: left;">$4,070.60</td>
-<td style="text-align: left;">$1,536.81</td>
-<td style="text-align: left;">$0.45T</td>
-<td style="text-align: left;">$37.37B</td>
-</tr>
-</tbody>
-</table>
-
-
-</div>
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" style="width:100.0%"></p>
-</div>
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid" style="width:100.0%"></p>
-</div>
-</div>
-</section>
-</section>
-<section id="day-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="day-predictions">30 Day Predictions</h2>
-<section id="btc-1" class="level3">
-<h3 class="anchored" data-anchor-id="btc-1">BTC</h3>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" style="width:100.0%"></p>
-</div>
-</div>
-</section>
-<section id="eth-1" class="level3">
-<h3 class="anchored" data-anchor-id="eth-1">ETH</h3>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" style="width:100.0%"></p>
-</div>
-</div>
-</section>
-</section>
-<section id="day-price-simulations" class="level2">
-<h2 class="anchored" data-anchor-id="day-price-simulations">30 Day Price Simulations</h2>
-<section id="btc-2" class="level3">
-<h3 class="anchored" data-anchor-id="btc-2">BTC</h3>
-<p>There is a 95% chance that the price of BTC will be between $47,830.70 and $113,016 in 30 days.</p>
-<p>The current price of BTC is within expected bounds from 15 days ago.</p>
-<p>The current price of BTC is within expected bounds from 30 days ago.</p>
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" style="width:100.0%"></p>
-</section>
-<section id="eth-2" class="level3">
-<h3 class="anchored" data-anchor-id="eth-2">ETH</h3>
-<p>There is a 95% chance that the price of ETH will be between $2,066.58 and $7,538.41 in 30 days.</p>
-<p>The current price of ETH is within expected bounds from 15 days ago.</p>
-<p>The current price of ETH is within expected bounds from 30 days ago.</p>
-<p><img src="btc_eth_report_v3_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" style="width:100.0%"></p>
-</section>
-</section>
-<section id="list-of-securities-tracked" class="level2">
-<h2 class="anchored" data-anchor-id="list-of-securities-tracked">List of Securities Tracked</h2>
 <ul>
-<li>BTC</li>
-<li>ETH</li>
+<li>A <em>buy</em> decision means the token price is predicted to rise by 10% or more in the next 30 days</li>
 </ul>
+</section>
+<section id="todays-sells" class="level3">
+<h3 class="anchored" data-anchor-id="todays-sells">Today’s Sells</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="lightable-minimal table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Token</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Prediction Date</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">BTC</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">XRP</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LTC</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ETH</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ETC</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BNB</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ADA</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">LINK</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">TRX</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MATIC</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">LEO</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SOL</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SHIB</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DOT</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">UNI</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">NEAR</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Sell</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<ul>
+<li>A <em>sell</em> decision means the token price is predicted to decline by 10% or more in the next 30 days</li>
+</ul>
+</section>
+<section id="todays-holds" class="level3">
+<h3 class="anchored" data-anchor-id="todays-holds">Today’s Holds</h3>
+<div class="cell">
+<div class="cell-output-display">
+<table class="lightable-minimal table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Token</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Prediction Date</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">DOGE</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Hold</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AVAX</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Hold</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ICP</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Hold</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TON</td>
+<td style="text-align: left;">2024-05-29</td>
+<td style="text-align: left;">Hold</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<ul>
+<li>A <em>hold</em> decision means the token is predicted to stay within 10% of the current price in the next 30 days</li>
+</ul>
+</section>
+</section>
+<section id="historical-performance" class="level2">
+<h2 class="anchored" data-anchor-id="historical-performance">Historical Performance</h2>
+<p>I need to do some performance calculations here.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="crypto_daily_v2_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" style="width:100.0%"></p>
+</div>
+</div>
+</section>
+<section id="current-token-data" class="level2">
+<h2 class="anchored" data-anchor-id="current-token-data">Current Token Data</h2>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="crypto_daily_v2_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" style="width:100.0%"></p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="crypto_daily_v2_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" style="width:100.0%"></p>
+</div>
+</div>
 </section>
 
 </main>
@@ -460,5 +542,5 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 
-<script src="btc_eth_report_v3_files/libs/quarto-html/zenscroll-min.js"></script>
+<script src="crypto_daily_v2_files/libs/quarto-html/zenscroll-min.js"></script>
 </body></html>
