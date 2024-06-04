@@ -24,6 +24,31 @@ library(gridExtra)
 library(tidyr)
 library(kableExtra)
 library(reticulate)
+library(httr)
+
+get_spy_dat <- function(symbol = "SPY", 
+                        freq_num = 1, 
+                        freq = "d", 
+                        period1 = as.numeric(format(as_datetime(Sys.Date() - days(97)), "%s")),
+                        period2 = as.numeric(format(as_datetime(Sys.time()), "%s"))) {
+    symbol <- gsub("\\.", "\\-", symbol)
+    URL <- paste0("https://query1.finance.yahoo.com/v7/finance/download/", 
+                  symbol, "?period1=", period1, "&period2=", period2, 
+                  "&interval=", freq_num, freq, 
+                  "&events=history&includeAdjustedClose=true")
+    
+    dat <- GET(URL)
+    dat <- content(dat, show_col_types = FALSE, encoding = "UTF-8")
+    
+    if(length(class(dat)) < 4) {
+        print(paste0("shit is breaking on ", symbol))
+        return(NULL)
+    }
+    
+    dat$symbol <- symbol
+    
+    return(dat)
+}
 ```
 
 ```{python}
@@ -134,7 +159,110 @@ todays_holds %>%
 - A *hold* decision means the token is predicted to stay within 10% of the 
 current price in the next 30 days
 
-## Historical Performance - Last 60 Days
+## Historical Performance
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| out-width: "100%"
+#| fig-height: 4
+
+spy <- get_spy_dat()
+
+first_date <- py$pred_dat %>% 
+    mutate(pred_date = as_date(pred_date)) %>% 
+    pull(pred_date) %>% 
+    min()
+
+py$pred_dat %>% 
+    left_join(py$all_dat %>% 
+                  select(token, date, price), 
+              by = c("pred_date" = "date",
+                     "token" = "token")) %>% 
+    left_join(py$tokens %>% 
+                  select(token, buy_threshold, sell_thresh, buy_ind),
+              by = "token") %>% 
+    filter(buy_ind == "buy" & 
+               token != "PEPE") %>% 
+    mutate(pred_date = as_date(pred_date),
+           buy = buy_prob >= buy_threshold,
+           sell = sell_prob >= sell_thresh,
+           decision = case_when(
+               sell ~ "sell",
+               buy ~ "buy",
+               1 == 1 ~ "hold")) %>% 
+    group_by(token) %>% 
+    arrange(token, pred_date) %>% 
+    mutate(first_buy = min(pred_date[decision == "buy"])) %>% 
+    filter(pred_date >= first_buy) %>% 
+    mutate(day_action = case_when(decision == "buy" ~ 1,
+                                  decision == "sell" ~ -1,
+                                  decision == "hold" ~ 0),
+           num_tokens = cumsum(day_action),
+           day_action = ifelse(num_tokens < 0 & day_action < 0, 0, day_action),
+           num_tokens = cumsum(day_action),
+           day_invested = ifelse(day_action > 0, price, 0),
+           day_returned = ifelse(day_action < 0, price, 0),
+           invested = cumsum(day_invested),
+           returned = cumsum(day_returned),
+           port_value = (num_tokens * price) + returned,
+           up_down = (port_value - invested) / invested,
+           
+           norm_tokens = day_action / price,
+           num_norm_tokens = cumsum(norm_tokens),
+           norm_tokens = ifelse(num_norm_tokens < 0 & day_action < 0, 0, norm_tokens),
+           norm_num_tokens = cumsum(norm_tokens),
+           norm_day_invested = ifelse(day_action > 0, price * norm_tokens, 0),
+           norm_day_returned = ifelse(day_action < 0, price * norm_tokens * -1, 0),
+           norm_invested = cumsum(norm_day_invested),
+           norm_returned = cumsum(norm_day_returned),
+           norm_port_value = (num_norm_tokens * price) + norm_returned,
+           norm_up_down = (norm_port_value - norm_invested) / norm_invested) %>% 
+    filter(pred_date != "2024-05-28") %>% 
+    ungroup() %>% 
+    group_by(pred_date) %>% 
+    summarise(total_day_invested = sum(norm_day_invested),
+              total_day_returned = sum(norm_day_returned),
+              total_invested = sum(norm_invested),
+              total_returned = sum(norm_returned),
+              total_port_value = sum(norm_port_value),
+              up_down = (total_port_value - total_invested) / total_invested) %>% 
+    left_join(spy %>% 
+                  select(Date, Close), 
+              by = c("pred_date" = "Date")) %>% 
+    mutate(dotw = wday(pred_date, label = TRUE),
+           Close = ifelse(is.na(Close) & dotw == "Fri", lag(Close), Close),
+           Close = ifelse(is.na(Close) & dotw == "Mon", lag(Close, 3), Close),
+           Close = case_when(dotw == "Sat" ~ lag(Close),
+                             dotw == "Sun" ~ lag(Close, 2),
+                             1 == 1 ~ Close),
+           spy_buy = total_day_invested / Close,
+           cum_spy_buy = cumsum(spy_buy),
+           spy_sell = total_day_returned / Close,
+           cum_spy_sell = cumsum(spy_sell),
+           spy_port = (cum_spy_buy * Close) + cum_spy_sell,
+           spy_up_down = (spy_port - total_invested) / total_invested) %>% 
+    select(-dotw) %>% 
+    pivot_longer(!pred_date, names_to = "metric", values_to = "value") %>% 
+    filter(metric == "up_down" | metric == "spy_up_down") %>% 
+    mutate(metric = case_when(metric == "up_down" ~ "RLE Analytics Returns",
+                              metric == "spy_up_down" ~ "SPY Returns")) %>% 
+    ggplot(aes(x = pred_date, y = value, color = metric)) + 
+        geom_line()  + 
+        ggtitle(paste("Model Returns vs. SPY since ", format(first_date, "%B %d, %Y"))) +
+        scale_y_continuous(labels = percent_format()) + 
+        theme(panel.background = element_blank(),
+              panel.grid.major = element_line(color = "light gray"),
+              axis.ticks = element_blank(), 
+              axis.title = element_blank(), 
+              plot.background = element_rect(fill = NA, color = "black"), 
+              strip.background = element_blank(),
+              legend.position = "top",
+              legend.key = element_blank(),
+              legend.title = element_blank())
+```
+
 
 ### Aggregate Performance per Token
 
@@ -145,14 +273,17 @@ current price in the next 30 days
 
 plot_dat <- py$pred_dat %>% 
     left_join(py$all_dat %>% 
-                  select(date, token, price, price_30d, pc_30d),
+                  select(date, token, price),
               by = c("pred_date" = "date",
                      "token" = "token")) %>% 
     left_join(py$tokens %>% 
                   select(token, buy_threshold, sell_thresh, buy_ind), 
               by = "token") %>% 
+    mutate(pred_date = as_date(pred_date)) %>% 
     group_by(token) %>% 
-    mutate(pred_date = as_date(pred_date),
+    arrange(token, pred_date) %>% 
+    mutate(price_30d = lead(price, 30),
+           pc_30d = (price_30d - price) / price,
            buy_decision = buy_prob > buy_threshold,
            sell_decision = sell_prob > sell_thresh,
            decision = case_when(sell_decision ~ "S",
