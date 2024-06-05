@@ -29,7 +29,7 @@ library(httr)
 get_spy_dat <- function(symbol = "SPY", 
                         freq_num = 1, 
                         freq = "d", 
-                        period1 = as.numeric(format(as_datetime(Sys.Date() - days(97)), "%s")),
+                        period1 = as.numeric(format(as_datetime("2023-06-05"), "%s")),
                         period2 = as.numeric(format(as_datetime(Sys.time()), "%s"))) {
     symbol <- gsub("\\.", "\\-", symbol)
     URL <- paste0("https://query1.finance.yahoo.com/v7/finance/download/", 
@@ -172,10 +172,11 @@ spy <- get_spy_dat()
 
 first_date <- py$pred_dat %>% 
     mutate(pred_date = as_date(pred_date)) %>% 
+    filter(pred_date >= Sys.Date() - days(365)) %>% 
     pull(pred_date) %>% 
     min()
 
-py$pred_dat %>% 
+plot_dat <- py$pred_dat %>% 
     left_join(py$all_dat %>% 
                   select(token, date, price), 
               by = c("pred_date" = "date",
@@ -192,6 +193,7 @@ py$pred_dat %>%
                sell ~ "sell",
                buy ~ "buy",
                1 == 1 ~ "hold")) %>% 
+    filter(pred_date >= Sys.Date() - days(365)) %>% 
     group_by(token) %>% 
     arrange(token, pred_date) %>% 
     mutate(first_buy = min(pred_date[decision == "buy"])) %>% 
@@ -233,6 +235,9 @@ py$pred_dat %>%
               by = c("pred_date" = "Date")) %>% 
     mutate(dotw = wday(pred_date, label = TRUE),
            Close = ifelse(is.na(Close) & dotw == "Fri", lag(Close), Close),
+           Close = ifelse(is.na(Close) & dotw == "Thu", lag(Close), Close),
+           Close = ifelse(is.na(Close) & dotw == "Wed", lag(Close), Close),
+           Close = ifelse(is.na(Close) & dotw == "Tue", lag(Close), Close),
            Close = ifelse(is.na(Close) & dotw == "Mon", lag(Close, 3), Close),
            Close = case_when(dotw == "Sat" ~ lag(Close),
                              dotw == "Sun" ~ lag(Close, 2),
@@ -245,26 +250,152 @@ py$pred_dat %>%
            spy_up_down = (spy_port - total_invested) / total_invested) %>% 
     select(-dotw) %>% 
     pivot_longer(!pred_date, names_to = "metric", values_to = "value") %>% 
-    filter(metric == "up_down" | metric == "spy_up_down") %>% 
+    filter((metric == "up_down" | metric == "spy_up_down") &
+               value >= -0.25) %>% 
     mutate(metric = case_when(metric == "up_down" ~ "RLE Analytics Returns",
-                              metric == "spy_up_down" ~ "SPY Returns")) %>% 
-    ggplot(aes(x = pred_date, y = value, color = metric)) + 
-        geom_line()  + 
-        ggtitle(paste("Model Returns vs. SPY since ", format(first_date, "%B %d, %Y"))) +
-        scale_y_continuous(labels = percent_format()) + 
-        theme(panel.background = element_blank(),
-              panel.grid.major = element_line(color = "light gray"),
-              axis.ticks = element_blank(), 
-              axis.title = element_blank(), 
-              plot.background = element_rect(fill = NA, color = "black"), 
-              strip.background = element_blank(),
-              legend.position = "top",
-              legend.key = element_blank(),
-              legend.title = element_blank())
+                              metric == "spy_up_down" ~ "SPY Returns"))
+
+ggplot(plot_dat, aes(x = pred_date, y = value, color = metric)) + 
+    geom_line()  + 
+    ggtitle(paste("RLE Analytics Returns vs. SPY since ", 
+                  format(first_date, "%B %d, %Y"))) +
+    scale_y_continuous(labels = percent_format()) + 
+    theme(panel.background = element_blank(),
+          panel.grid.major = element_line(color = "light gray"),
+          axis.ticks = element_blank(), 
+          axis.title = element_blank(), 
+          plot.background = element_rect(fill = NA, color = "black"), 
+          strip.background = element_blank(),
+          legend.position = "top",
+          legend.key = element_blank(),
+          legend.title = element_blank())
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| out-width: "100%"
+#| fig-height: 4
+
+cryp_dat <- py$pred_dat %>% 
+    left_join(py$all_dat %>% 
+                  select(token, date, price), 
+              by = c("pred_date" = "date",
+                     "token" = "token")) %>% 
+    left_join(py$tokens %>% 
+                  select(token, buy_threshold, sell_thresh, buy_ind),
+              by = "token") %>% 
+    filter(buy_ind == "buy" & 
+               token != "PEPE") %>% 
+    mutate(pred_date = as_date(pred_date),
+           buy = buy_prob >= buy_threshold,
+           sell = sell_prob >= sell_thresh,
+           decision = case_when(
+               sell ~ "sell",
+               buy ~ "buy",
+               1 == 1 ~ "hold"),
+           dotw = wday(pred_date, label = TRUE),
+           quarter = quarter(pred_date),
+           year = year(pred_date)) %>% 
+    group_by(token, quarter, year) %>% 
+    arrange(token, pred_date) %>% 
+    mutate(first_buy = min(pred_date[decision == "buy"])) %>% 
+    filter(pred_date >= first_buy) %>% 
+    mutate(day_action = case_when(decision == "buy" ~ 1,
+                                  decision == "sell" ~ -1,
+                                  decision == "hold" ~ 0),
+           num_tokens = cumsum(day_action),
+           day_action = ifelse(num_tokens < 0 & day_action < 0, 0, day_action),
+           num_tokens = cumsum(day_action),
+           day_invested = ifelse(day_action > 0, price, 0),
+           day_returned = ifelse(day_action < 0, price, 0),
+           invested = cumsum(day_invested),
+           returned = cumsum(day_returned),
+           port_value = (num_tokens * price) + returned,
+           up_down = (port_value - invested) / invested,
+           
+           norm_tokens = day_action / price,
+           num_norm_tokens = cumsum(norm_tokens),
+           norm_tokens = ifelse(num_norm_tokens < 0 & day_action < 0, 0, norm_tokens),
+           norm_num_tokens = cumsum(norm_tokens),
+           norm_day_invested = ifelse(day_action > 0, price * norm_tokens, 0),
+           norm_day_returned = ifelse(day_action < 0, price * norm_tokens * -1, 0),
+           norm_invested = cumsum(norm_day_invested),
+           norm_returned = cumsum(norm_day_returned),
+           norm_port_value = (num_norm_tokens * price) + norm_returned,
+           norm_up_down = (norm_port_value - norm_invested) / norm_invested) %>% 
+    filter(pred_date != "2024-05-28") %>% 
+    ungroup() %>% 
+    group_by(pred_date, quarter, year, dotw) %>% 
+    summarise(total_day_invested = sum(norm_day_invested),
+              total_day_returned = sum(norm_day_returned),
+              total_invested = sum(norm_invested),
+              total_returned = sum(norm_returned),
+              total_port_value = sum(norm_port_value),
+              up_down = (total_port_value - total_invested) / total_invested) %>% 
+    rename("RLE Analytics Returns" = "up_down")
+
+spy_invest <- spy %>% 
+    mutate(quarter = quarter(Date),
+           year = year(Date)) %>% 
+    left_join(cryp_dat %>% 
+                  ungroup() %>% 
+                  group_by(quarter, year) %>% 
+                  summarise(total_invested = sum(total_day_invested)),
+              by = c("quarter" = "quarter",
+                     "year" = "year")) %>% 
+    group_by(quarter, year) %>% 
+    summarise(first_date = min(Date),
+              total_invested = max(total_invested),
+              purchased = ifelse(first_date == Date, total_invested / Close, NA)) %>% 
+    filter(!is.na(purchased))
+
+spy_dat <- spy %>% 
+    mutate(quarter = quarter(Date),
+           year = year(Date)) %>% 
+    left_join(spy_invest, by = c("quarter", "year")) %>% 
+    mutate(spy_value = purchased * Close,
+           spy_up_down = (spy_value - total_invested) / total_invested)
+
+plot_dat <- cryp_dat %>% 
+    left_join(spy_dat, by = c("pred_date" = "Date")) %>% 
+    select(pred_date, `RLE Analytics Returns`, spy_up_down, quarter.x, year.x) %>% 
+    rename("quarter" = "quarter.x", 
+           "year" = "year.x",
+           "SPY Returns" = "spy_up_down") %>% 
+    pivot_longer(!c(pred_date, quarter, year), 
+                 names_to = "metric", 
+                 values_to = "value") %>% 
+    mutate(quarter = paste0("Q", quarter)) %>% 
+    filter(!is.na(value) & 
+               pred_date >= as_date("2023-07-01"))
+    
+first_date <- min(plot_dat$pred_date)
+
+ggplot(plot_dat, 
+       aes(x = pred_date, y = value, color = metric)) + 
+    geom_line() + 
+    facet_grid(~ factor(quarter, levels = c("Q3", "Q4", "Q1", "Q2")),
+               scales = "free") +
+    ggtitle(paste("RLE Analytics Quarterly Returns vs. SPY since ", 
+                  format(first_date, "%B %d, %Y"))) +
+    scale_y_continuous(labels = percent_format()) + 
+    theme(panel.background = element_blank(),
+          panel.grid.major = element_line(color = "light gray"),
+          axis.ticks = element_blank(), 
+          axis.title = element_blank(), 
+          plot.background = element_rect(fill = NA, color = "black"), 
+          strip.background = element_blank(),
+          legend.position = "none",
+          legend.key = element_blank(),
+          legend.title = element_blank(),
+          axis.text.x = element_text(angle = 90))
 ```
 
 
-### Aggregate Performance per Token
+### Aggregate Performance per Token - Last 90 Days
 
 ```{r}
 #| echo: false
@@ -297,7 +428,7 @@ plot_dat <- py$pred_dat %>%
                                       (decision == "B" & pc_30d < 0) |
                                       (decision == "H" & pc_30d < -0.1)) ~ "incorrect")) %>% 
     filter(token %in% py$tokens$token[py$tokens$buy_ind == "buy"] & 
-               pred_date >= Sys.Date() - days(91)) %>% 
+               pred_date >= Sys.Date() - days(89)) %>% 
     mutate(min_price = min(price)) 
 
 plot_dat %>% 
@@ -318,6 +449,7 @@ plot_dat %>%
               `Hold Incorrect` = sum(ifelse(decision == "H" & confusion == "incorrect", 1, 0)),
               `Hold Correct Rate` = percent(`Hold Correct` / 
                                                 (`Hold Correct` + `Hold Incorrect`))) %>%
+    arrange(desc(`Total Correct`)) %>%
     kbl() %>%
     kable_minimal()
 ```
