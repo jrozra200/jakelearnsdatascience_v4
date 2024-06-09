@@ -174,6 +174,20 @@ spy <- spy %>%
     mutate(first_price = Close[Date == min(Date)],
            spy_up_down = (Close - first_price) / first_price)
 
+btc <- py$all_dat %>% 
+    mutate(date = as_date(date)) %>% 
+    filter(date >= Sys.Date() - days(365) & 
+               token == "BTC") %>% 
+    mutate(first_price = price[date == min(date)],
+           btc_up_down = (price - first_price) / first_price)
+
+eth <- py$all_dat %>% 
+    mutate(date = as_date(date)) %>% 
+    filter(date >= Sys.Date() - days(365) & 
+               token == "ETH") %>% 
+    mutate(first_price = price[date == min(date)],
+           eth_up_down = (price - first_price) / first_price)
+    
 first_date <- py$pred_dat %>% 
     mutate(pred_date = as_date(pred_date)) %>% 
     filter(pred_date >= Sys.Date() - days(365)) %>% 
@@ -242,16 +256,26 @@ plot_dat <- py$pred_dat %>%
     left_join(spy %>% 
                   select(Date, spy_up_down), 
               by = c("pred_date" = "Date")) %>% 
+    left_join(btc %>% 
+                  select(date, btc_up_down), 
+              by = c("pred_date" = "date")) %>% 
+    left_join(eth %>% 
+                  select(date, eth_up_down), 
+              by = c("pred_date" = "date")) %>% 
     pivot_longer(!pred_date, names_to = "metric", values_to = "value") %>% 
-    filter((metric == "spy_up_down" | metric == "up_down_actual") &
+    filter((metric == "spy_up_down" | 
+                metric == "up_down_actual" | 
+                metric == "btc_up_down" | 
+                metric == "eth_up_down") &
                !is.na(value)) %>% 
     mutate(metric = case_when(metric == "up_down_actual" ~ "RLE Analytics Returns",
-                              metric == "up_down_actual" ~ "RLE Analytics Returns Act",
-                              metric == "spy_up_down" ~ "SPY Returns"))
+                              metric == "spy_up_down" ~ "SPY Returns",
+                              metric == "btc_up_down" ~ "BTC Returns",
+                              metric == "eth_up_down" ~ "ETH Returns"))
 
 ggplot(plot_dat, aes(x = pred_date, y = value, color = metric)) + 
     geom_line()  + 
-    ggtitle(paste("RLE Analytics Returns vs. SPY since ", 
+    ggtitle(paste("RLE Analytics Returns vs. SPY, BTC, ETH since ", 
                   format(first_date, "%B %d, %Y"))) +
     scale_y_continuous(labels = percent_format()) + 
     theme(panel.background = element_blank(),
@@ -337,6 +361,24 @@ cryp_dat <- py$pred_dat %>%
               up_down_actual = (total_port_value - total_actual_invested) / total_actual_invested) %>% 
     rename("RLE Analytics Returns" = "up_down_actual")
 
+btc_invest <- py$all_dat %>% 
+    mutate(date = as_date(date),
+           quarter = quarter(date),
+           year = year(date)) %>% 
+    filter(token == "BTC") %>% 
+    group_by(quarter, year) %>% 
+    mutate(first_price = price[date == min(date)],
+           btc_up_down = (price - first_price) / first_price)
+
+eth_invest <- py$all_dat %>% 
+    mutate(date = as_date(date),
+           quarter = quarter(date),
+           year = year(date)) %>% 
+    filter(token == "ETH") %>% 
+    group_by(quarter, year) %>% 
+    mutate(first_price = price[date == min(date)],
+           eth_up_down = (price - first_price) / first_price)
+
 spy_invest <- spy %>% 
     mutate(quarter = quarter(Date),
            year = year(Date)) %>% 
@@ -345,12 +387,25 @@ spy_invest <- spy %>%
            spy_up_down = (Close - first_price) / first_price)
 
 
-plot_dat <- cryp_dat %>% 
-    left_join(spy_invest, by = c("pred_date" = "Date")) %>% 
-    select(pred_date, `RLE Analytics Returns`, spy_up_down, quarter.x, year.x) %>% 
-    rename("quarter" = "quarter.x", 
-           "year" = "year.x",
-           "SPY Returns" = "spy_up_down") %>% 
+plot_dat <- eth_invest %>% 
+    left_join(spy_invest, by = c("date" = "Date")) %>% 
+    left_join(btc_invest, by = c("date" = "date")) %>% 
+    left_join(cryp_dat, by = c("date" = "pred_date")) %>% 
+    rename("pred_date" = "date") %>% 
+    select(pred_date, 
+           `RLE Analytics Returns`, 
+           spy_up_down, 
+           btc_up_down,
+           eth_up_down,
+           quarter.y, 
+           year.y) %>% 
+    rename("quarter" = "quarter.y", 
+           "year" = "year.y",
+           "SPY Returns" = "spy_up_down",
+           "BTC Returns" = "btc_up_down",
+           "ETH Returns" = "eth_up_down") %>% 
+    mutate(quarter = quarter(pred_date),
+           year = year(pred_date)) %>% 
     pivot_longer(!c(pred_date, quarter, year), 
                  names_to = "metric", 
                  values_to = "value") %>% 
@@ -378,6 +433,7 @@ ggplot(plot_dat,
           legend.key = element_blank(),
           legend.title = element_blank(),
           axis.text.x = element_text(angle = 90))
+
 ```
 
 
