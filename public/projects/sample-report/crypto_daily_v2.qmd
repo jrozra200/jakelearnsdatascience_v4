@@ -170,9 +170,15 @@ current price in the next 30 days
 
 spy <- get_spy_dat()
 
+qqq <- get_spy_dat(symbol = "QQQ")
+
 spy <- spy %>% 
     mutate(first_price = Close[Date == min(Date)],
            spy_up_down = (Close - first_price) / first_price)
+
+qqq <- qqq %>% 
+    mutate(first_price = Close[Date == min(Date)],
+           qqq_up_down = (Close - first_price) / first_price)
 
 btc <- py$all_dat %>% 
     mutate(date = as_date(date)) %>% 
@@ -256,6 +262,9 @@ plot_dat <- py$pred_dat %>%
     left_join(spy %>% 
                   select(Date, spy_up_down), 
               by = c("pred_date" = "Date")) %>% 
+    left_join(qqq %>% 
+                  select(Date, qqq_up_down), 
+              by = c("pred_date" = "Date")) %>% 
     left_join(btc %>% 
                   select(date, btc_up_down), 
               by = c("pred_date" = "date")) %>% 
@@ -264,18 +273,26 @@ plot_dat <- py$pred_dat %>%
               by = c("pred_date" = "date")) %>% 
     pivot_longer(!pred_date, names_to = "metric", values_to = "value") %>% 
     filter((metric == "spy_up_down" | 
+                metric == "qqq_up_down" | 
                 metric == "up_down_actual" | 
                 metric == "btc_up_down" | 
                 metric == "eth_up_down") &
                !is.na(value)) %>% 
     mutate(metric = case_when(metric == "up_down_actual" ~ "RLE Analytics Returns",
-                              metric == "spy_up_down" ~ "SPY Returns",
-                              metric == "btc_up_down" ~ "BTC Returns",
-                              metric == "eth_up_down" ~ "ETH Returns"))
+                              metric == "spy_up_down" ~ "SPY",
+                              metric == "qqq_up_down" ~ "QQQ",
+                              metric == "btc_up_down" ~ "BTC",
+                              metric == "eth_up_down" ~ "ETH"),
+           metric = factor(metric, 
+                           levels = c("RLE Analytics Returns",
+                                      "BTC",
+                                      "ETH",
+                                      "SPY",
+                                      "QQQ")))
 
 ggplot(plot_dat, aes(x = pred_date, y = value, color = metric)) + 
     geom_line()  + 
-    ggtitle(paste("RLE Analytics Returns vs. SPY, BTC, ETH since ", 
+    ggtitle(paste("RLE Analytics Returns vs. SPY, QQQ, BTC, ETH since ", 
                   format(first_date, "%B %d, %Y"))) +
     scale_y_continuous(labels = percent_format()) + 
     theme(panel.background = element_blank(),
@@ -386,30 +403,46 @@ spy_invest <- spy %>%
     mutate(first_price = Close[Date == min(Date)],
            spy_up_down = (Close - first_price) / first_price)
 
+qqq_invest <- qqq %>% 
+    mutate(quarter = quarter(Date),
+           year = year(Date)) %>% 
+    group_by(quarter, year) %>% 
+    mutate(first_price = Close[Date == min(Date)],
+           qqq_up_down = (Close - first_price) / first_price)
+
 
 plot_dat <- eth_invest %>% 
     left_join(spy_invest, by = c("date" = "Date")) %>% 
+    left_join(qqq_invest, by = c("date" = "Date")) %>% 
     left_join(btc_invest, by = c("date" = "date")) %>% 
     left_join(cryp_dat, by = c("date" = "pred_date")) %>% 
     rename("pred_date" = "date") %>% 
     select(pred_date, 
            `RLE Analytics Returns`, 
-           spy_up_down, 
+           spy_up_down,
+           qqq_up_down,
            btc_up_down,
            eth_up_down,
            quarter.y, 
            year.y) %>% 
     rename("quarter" = "quarter.y", 
            "year" = "year.y",
-           "SPY Returns" = "spy_up_down",
-           "BTC Returns" = "btc_up_down",
-           "ETH Returns" = "eth_up_down") %>% 
+           "SPY" = "spy_up_down",
+           "QQQ" = "qqq_up_down",
+           "BTC" = "btc_up_down",
+           "ETH" = "eth_up_down") %>% 
     mutate(quarter = quarter(pred_date),
            year = year(pred_date)) %>% 
     pivot_longer(!c(pred_date, quarter, year), 
                  names_to = "metric", 
                  values_to = "value") %>% 
-    mutate(quarter = paste0("Q", quarter)) %>% 
+    mutate(quarter = paste0("Q", quarter),
+           metric = factor(metric, 
+                           levels = c("RLE Analytics Returns",
+                                      "BTC",
+                                      "ETH",
+                                      "SPY",
+                                      "QQQ"))) %>% 
     filter(!is.na(value) & 
                pred_date >= as_date("2023-07-01"))
     
