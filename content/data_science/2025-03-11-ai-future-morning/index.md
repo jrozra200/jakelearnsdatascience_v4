@@ -1,9 +1,8 @@
 ---
-title: "Model Comparison - ROC vs. Precision-Recall Curves"
+title: "A Morning in Your Future: How AI Could Change Everyday "
 author: Jake Rozran
 date: '2025-03-11'
 slug: ai-future-morning
-summaryImage: "ai-future-header.jpg"
 categories:
 - Data Science
 - AI
@@ -12,8 +11,7 @@ tags:
 - AI
 ---
 
-
-## A Morning in Your Future: How AI Could Change Everyday 
+![AI Brain](ai-future-header.jpg)
 
 I have been riding the wave of AI since [ChatGPT](https://openai.com/index/chatgpt/) became a thing in November 2022. I didn't fully understand it, but I was immediately impressed by its ability to summarize text. That was cool, for sure, but I couldn't figure out what all of the fuss was about. 
 
