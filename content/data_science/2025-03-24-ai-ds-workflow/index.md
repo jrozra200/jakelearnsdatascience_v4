@@ -1,8 +1,8 @@
 ---
-title: "A Morning in Your Future: How AI Could Change Everyday "
+title: "How AI Is Revolutionizing My Workflow as a Data Scientist"
 author: Jake Rozran
-date: '2025-03-11'
-slug: ai-future-morning
+date: '2025-03-24'
+slug: ai-workflow
 categories:
 - Data Science
 - AI
