@@ -13,8 +13,6 @@ tags:
 
 ![DALL·E 2025-03-24 15.03.04 - A modern man in his 30s sitting at a sleek desk using an artificial intelligence interface on a futuristic computer. The room has a high-tech ambiance.](ai-workflow-desk.webp)
 
-## How AI Is Revolutionizing My Workflow as a Data Scientist
-
 Over the last couple of years, AI has completely reshaped the way I code, document, organize my work, and even challenged how I think. Here's some ways AI is transforming my day (and yes, I do use AI pretty much all day).
 
 ### AI Helps Me Code More Efficiently
